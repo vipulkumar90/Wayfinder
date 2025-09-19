@@ -1,0 +1,42 @@
+{
+  "name": "trip-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "dev": "tsx watch src/app.ts",
+    "dev:debug": "tsx --inspect watch src/app.ts",
+    "grpc": "tsx watch src/grpcServer.ts",
+    "build": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "start": "node dist/app.js",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "proto:gen": "grpc_tools_node_protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=src/generated --ts_proto_opt=esModuleInterop=true,outputServices=grpc-js,useOptionals=true --proto_path=../../shared/protos ../../shared/protos/*.proto"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "packageManager": "pnpm@10.14.0",
+  "devDependencies": {
+    "@grpc/grpc-js": "^1.14.0",
+    "@grpc/proto-loader": "^0.8.0",
+    "@types/express": "^5.0.3",
+    "@types/google-protobuf": "^3.15.12",
+    "@types/node": "^24.5.2",
+    "grpc_tools_node_protoc_ts": "^5.3.3",
+    "prisma": "^6.16.2",
+    "ts-node-dev": "^2.0.0",
+    "ts-proto": "^2.7.7",
+    "tsx": "^3.12.7",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.16.2",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "zod": "^4.1.9"
+  }
+}

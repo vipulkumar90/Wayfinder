@@ -1,0 +1,31 @@
+services:
+  # app:
+  #   build: .
+  #   depends_on:
+  #     - postgredb
+  #   ports:
+  #     - '3000:3000'
+  #   networks:
+  #     - node-network
+  postgredb:
+    image: postgres
+    restart: always
+    container_name: postgredb
+    environment:
+      POSTGRES_USER: wayfinder
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: tripdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    networks:
+      - node-network
+
+volumes:
+  dbdata:
+    driver: local
+
+networks:
+  node-network:
+    driver: bridge
