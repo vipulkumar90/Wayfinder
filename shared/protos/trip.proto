@@ -1,22 +1,207 @@
+
 syntax = "proto3";
 
-package trip;
+package trip.v1;
 
-service TripService {
-  rpc CreateTrip (CreateTripRequest) returns (CreateTripResponse);
-}
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+/// Travel Planner MVP - gRPC API
+/// - User mode 
+/// - Core domain: Trip, Event, Budget
+/// - Views: Timeline, Map per day
+
+// -----------------------------
+// Domain messages
+// -----------------------------
 
 message Trip {
   string id = 1;
-  string title = 2;
-  string destination = 3;
+  optional string title = 2; // optional
+  string user_id = 3;
+  string destination = 4; // e.g. "Japan, France"
+  google.protobuf.Timestamp start_date = 5; // date/time 
+  google.protobuf.Timestamp end_date = 6;   // date/time 
+  double budget = 7; // budget in currency units
+  string currency = 8; // ISO currency code, e.g. "EUR", "USD"
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
 }
 
+enum Category {
+  CATEGORY_UNSPECIFIED = 0;
+  TRANSPORTATION = 1;
+  ACCOMMODATION = 2;
+  ATTRACTION = 3;
+  FOOD = 4;
+  ENTERTAINMENT = 5;
+  OTHER = 6;
+}
+
+message Event {
+  string id = 1; 
+  string trip_id = 2;
+  string title = 3;
+  google.protobuf.Timestamp start_time = 4;
+  google.protobuf.Timestamp end_time = 5;
+  // location fields
+  string location_name = 6; // free text or POI
+  double location_lat = 7;
+  double location_lng = 8;
+  double cost = 9; 
+  Category category = 10;
+  string notes = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+}
+
+// Budget summary
+message BudgetSummary {
+  string trip_id = 1;
+  double total_budget = 2;
+  double amount_spent = 3;
+  double remaining = 4;
+  // breakdown by category (category enum name -> amount)
+  map<string, double> spent_by_category = 5;
+}
+
+// -----------------------------
+// Requests & Responses
+// -----------------------------
+
+// Trip RPCs
 message CreateTripRequest {
-  string title = 1;
-  string destination = 2;
+  Trip trip = 1; 
 }
 
-message CreateTripResponse {
-  Trip trip = 1;
+message GetTripRequest {
+  string trip_id = 1;
+}
+
+message UpdateTripRequest {
+  Trip trip = 1; // trip.id is required
+}
+
+message DeleteTripRequest {
+  string trip_id = 1;
+}
+
+message ListTripsRequest {
+  string user_id = 1; // optional, filter by user
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListTripsResponse {
+  repeated Trip trips = 1;
+  string next_page_token = 2;
+}
+
+// Event RPCs
+message CreateEventRequest {
+  Event event = 1; // id, created_at, updated_at ignored if present
+}
+
+message GetEventRequest {
+  string event_id = 1;
+}
+
+message UpdateEventRequest {
+  Event event = 1; // event.id required
+}
+
+message DeleteEventRequest {
+  string event_id = 1;
+}
+
+message ListEventsRequest {
+  string trip_id = 1; // required
+  // optional filters
+  google.protobuf.Timestamp from_date = 2;
+  google.protobuf.Timestamp to_date = 3;
+}
+
+message ListEventsResponse {
+  repeated Event events = 1;
+}
+
+// View RPCs
+message GetTimelineRequest {
+  string trip_id = 1; // required
+  google.protobuf.Timestamp from_date = 2;
+  google.protobuf.Timestamp to_date = 3;
+}
+
+message DayTimeline {
+  google.protobuf.Timestamp date = 1;
+  repeated Event events = 2; // events for this day sorted by start_time
+}
+
+message GetTimelineResponse {
+  repeated DayTimeline days = 1;
+}
+
+message GetMapViewRequest {
+  string trip_id = 1;
+  google.protobuf.Timestamp date = 2;
+}
+
+message MapPoint {
+  string event_id = 1;
+  string title = 2;
+  double lat = 3;
+  double lng = 4;
+  // ordering index for route polyline
+  int32 order = 5;
+}
+
+message DayMap {
+  google.protobuf.Timestamp date = 1;
+  repeated MapPoint points = 2; 
+}
+
+message GetMapViewResponse {
+  repeated DayMap days = 1;
+}
+
+// Budget RPCs
+message GetBudgetRequest {
+  string trip_id = 1;
+}
+
+message GetBudgetResponse {
+  BudgetSummary summary = 1;
+}
+
+// -----------------------------
+// Services
+// -----------------------------
+
+service TripService {
+  rpc CreateTrip(CreateTripRequest) returns (Trip) {}
+  rpc GetTrip(GetTripRequest) returns (Trip) {}
+  rpc UpdateTrip(UpdateTripRequest) returns (Trip) {}
+  rpc DeleteTrip(DeleteTripRequest) returns (google.protobuf.Empty) {}
+  rpc ListTrips(ListTripsRequest) returns (ListTripsResponse) {}
+}
+
+service EventService {
+  rpc CreateEvent(CreateEventRequest) returns (Event) {}
+  rpc GetEvent(GetEventRequest) returns (Event) {}
+  rpc UpdateEvent(UpdateEventRequest) returns (Event) {}
+  rpc DeleteEvent(DeleteEventRequest) returns (google.protobuf.Empty) {}
+  rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {}
+}
+
+service ViewService {
+  // Timeline: returns day-grouped events suitable for building timeline UI
+  rpc GetTimeline(GetTimelineRequest) returns (GetTimelineResponse) {}
+
+  // Map view: returns geo points per day and ordering to draw polylines
+  rpc GetMapView(GetMapViewRequest) returns (GetMapViewResponse) {}
+}
+
+service BudgetService {
+  // Returns a computed budget summary (aggregates event costs)
+  rpc GetBudget(GetBudgetRequest) returns (GetBudgetResponse) {}
 }

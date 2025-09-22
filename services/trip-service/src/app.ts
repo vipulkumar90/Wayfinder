@@ -32,9 +32,11 @@ const options: protoLoader.Options = {
 
 const packageDef = protoLoader.loadSync(PROTO_FILE, options);
 
-const proto = (grpc.loadPackageDefinition(packageDef) as any).trip;
+const proto = (grpc.loadPackageDefinition(packageDef) as any).trip.v1;
 
 const server = new grpc.Server();
+
+console.log(proto);
 
 // This is a entrie of all APIs
 server.addService(proto.TripService.service, {

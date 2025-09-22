@@ -15,11 +15,13 @@ datasource db {
 
 model Trip {
   id          String    @id @default(cuid())
-  title       String
+  userId      String
+  title       String?
   destination String
   startDate   DateTime
   endDate     DateTime?
   budget      Float
+  currency    String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
