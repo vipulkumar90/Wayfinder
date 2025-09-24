@@ -19,9 +19,38 @@ model Trip {
   title       String?
   destination String
   startDate   DateTime
-  endDate     DateTime?
+  endDate     DateTime
   budget      Float
   currency    String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  events      Event[]
+}
+
+enum Category {
+  TRANSPORTATION
+  ACCOMMODATION
+  ATTRACTION
+  FOOD
+  ENTERTAINMENT
+  OTHER
+}
+
+model Event {
+  id           String    @id @default(cuid())
+  tripId       String
+  title        String
+  startTime    DateTime
+  endTime      DateTime?
+  locationName String?
+  locationLat  Float?
+  locationLng  Float?
+  cost         Float?    @default(0)
+  category     Category  @default(OTHER)
+  notes        String?
+  sortOrder    Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
 }

@@ -1,10 +1,31 @@
 import type { sendUnaryData, ServerUnaryCall } from '@grpc/grpc-js';
-import { CreateTripRequest, Trip } from '@/generated/trip.js';
-import { createNewTrip } from '@/modules/trip/trip.service.js';
-import * as grpc from '@grpc/grpc-js';
+import grpc from '@grpc/grpc-js';
+import type {
+  CreateTripRequest,
+  Trip,
+  GetTripRequest,
+  UpdateTripRequest,
+  DeleteTripRequest,
+  ListTripsRequest,
+  ListTripsResponse,
+} from '@/generated/trip.js';
+import { Empty } from '@/generated/google/protobuf/empty.js';
 import logger from '@/lib/logger.js';
 import { validateInput } from '@/utils/validate.js';
-import { createTripSchema } from '@/modules/trip/trip.schema.js';
+import { createTripSchema, updateTripSchema } from '@/modules/trip/trip.schema.js';
+import {
+  createNewTrip,
+  getTripById,
+  updateTripById,
+  deleteTripById,
+  listTrips,
+} from '@/modules/trip/trip.service.js';
+import {
+  mapTripMessageToCreateInput,
+  mapTripMessageToUpdateInput,
+  mapTripModelToMessage,
+} from './mappers.js';
+import { isPrismaNotFoundError } from '@/utils/errors.js';
 
 export const createTripHandler = async (
   call: ServerUnaryCall<CreateTripRequest, Trip>,
@@ -21,42 +42,155 @@ export const createTripHandler = async (
       return;
     }
 
-    const input = {
-      name: tripData.title,
-      userId: tripData.userId,
-      destination: tripData.destination,
-      startDate: tripData.startDate,
-      endDate: tripData.endDate,
-      budget: tripData.budget,
-      currency: tripData.currency,
-    };
+    console.log(tripData);
+    const input = mapTripMessageToCreateInput(tripData);
+    const validated = validateInput(createTripSchema, input, callback);
+    if (!validated) return;
 
-    const validateResult = validateInput(createTripSchema, input, callback);
-
-    if (!validateResult) return;
-
-    const newTrip = await createNewTrip(validateResult);
-
-    const response: Trip = {
-      id: newTrip.id,
-      title: newTrip.title || undefined,
-      userId: newTrip.id,
-      destination: newTrip.destination,
-      startDate: newTrip.startDate,
-      endDate: newTrip.endDate || undefined,
-      budget: newTrip.budget,
-      currency: newTrip.currency,
-      createdAt: newTrip.createdAt,
-      updatedAt: newTrip.updatedAt,
-    };
-
-    callback(null, response);
+    const newTrip = await createNewTrip(validated);
+    callback(null, mapTripModelToMessage(newTrip));
   } catch (error) {
-    logger.error('Error in createTripHandler:', error);
-
+    logger.error('Error in CreateTrip:', error);
     callback({
       code: grpc.status.INTERNAL,
       message: 'Failed to create trip',
+    } as grpc.ServiceError);
+  }
+};
+
+export const getTripHandler = async (
+  call: ServerUnaryCall<GetTripRequest, Trip>,
+  callback: sendUnaryData<Trip>
+) => {
+  try {
+    const { tripId } = call.request;
+    if (!tripId) {
+      callback({
+        code: grpc.status.INVALID_ARGUMENT,
+        message: 'tripId is required',
+      } as grpc.ServiceError);
+      return;
+    }
+
+    const trip = await getTripById(tripId);
+    if (!trip) {
+      callback({
+        code: grpc.status.NOT_FOUND,
+        message: `Trip ${tripId} not found`,
+      } as grpc.ServiceError);
+      return;
+    }
+
+    callback(null, mapTripModelToMessage(trip));
+  } catch (error) {
+    logger.error('Error in GetTrip:', error);
+    callback({
+      code: grpc.status.INTERNAL,
+      message: 'Failed to fetch trip',
+    } as grpc.ServiceError);
+  }
+};
+
+export const updateTripHandler = async (
+  call: ServerUnaryCall<UpdateTripRequest, Trip>,
+  callback: sendUnaryData<Trip>
+) => {
+  try {
+    const tripData = call.request.trip;
+    if (!tripData) {
+      callback({
+        code: grpc.status.INVALID_ARGUMENT,
+        message: 'Trip data is required',
+      } as grpc.ServiceError);
+      return;
+    }
+
+    const input = mapTripMessageToUpdateInput(tripData);
+    const validated = validateInput(updateTripSchema, input, callback);
+    if (!validated) return;
+
+    const updatedTrip = await updateTripById(validated);
+    callback(null, mapTripModelToMessage(updatedTrip));
+  } catch (error) {
+    if (isPrismaNotFoundError(error)) {
+      callback({
+        code: grpc.status.NOT_FOUND,
+        message: 'Trip not found',
+      } as grpc.ServiceError);
+      return;
+    }
+
+    logger.error('Error in UpdateTrip:', error);
+    callback({
+      code: grpc.status.INTERNAL,
+      message: 'Failed to update trip',
+    } as grpc.ServiceError);
+  }
+};
+
+export const deleteTripHandler = async (
+  call: ServerUnaryCall<DeleteTripRequest, Empty>,
+  callback: sendUnaryData<Empty>
+) => {
+  try {
+    const { tripId } = call.request;
+    if (!tripId) {
+      callback({
+        code: grpc.status.INVALID_ARGUMENT,
+        message: 'tripId is required',
+      } as grpc.ServiceError);
+      return;
+    }
+
+    await deleteTripById(tripId);
+    callback(null, Empty.create({}));
+  } catch (error) {
+    if (isPrismaNotFoundError(error)) {
+      callback({
+        code: grpc.status.NOT_FOUND,
+        message: 'Trip not found',
+      } as grpc.ServiceError);
+      return;
+    }
+
+    logger.error('Error in DeleteTrip:', error);
+    callback({
+      code: grpc.status.INTERNAL,
+      message: 'Failed to delete trip',
+    } as grpc.ServiceError);
+  }
+};
+
+export const listTripsHandler = async (
+  call: ServerUnaryCall<ListTripsRequest, ListTripsResponse>,
+  callback: sendUnaryData<ListTripsResponse>
+) => {
+  try {
+    const { userId, pageSize, pageToken } = call.request;
+
+    const result = await listTrips({
+      userId: userId || undefined,
+      pageSize: pageSize || 20,
+      pageToken: pageToken || undefined,
+    });
+
+    callback(null, {
+      trips: result.trips.map(mapTripModelToMessage),
+      nextPageToken: result.nextPageToken ?? '',
+    });
+  } catch (error) {
+    if (isPrismaNotFoundError(error)) {
+      callback({
+        code: grpc.status.INVALID_ARGUMENT,
+        message: 'Invalid page token provided',
+      } as grpc.ServiceError);
+      return;
+    }
+
+    logger.error('Error in ListTrips:', error);
+    callback({
+      code: grpc.status.INTERNAL,
+      message: 'Failed to list trips',
     } as grpc.ServiceError);
   }
 };

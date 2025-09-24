@@ -5,8 +5,22 @@ import protoLoader from '@grpc/proto-loader';
 import { prisma } from '@/lib/prisma.js';
 import config from './config/env.js';
 import logger from './lib/logger.js';
-import { createTripHandler } from './grpc/trip.handler.js';
-import { createNewTrip } from './modules/trip/trip.service.js';
+import {
+  createTripHandler,
+  getTripHandler,
+  updateTripHandler,
+  deleteTripHandler,
+  listTripsHandler,
+} from './grpc/trip.handler.js';
+import {
+  createEventHandler,
+  getEventHandler,
+  updateEventHandler,
+  deleteEventHandler,
+  listEventsHandler,
+} from './grpc/event.handler.js';
+import { getTimelineHandler, getMapViewHandler } from './grpc/view.handler.js';
+import { getBudgetHandler } from './grpc/budget.handler.js';
 
 try {
   await prisma.$connect();
@@ -36,11 +50,29 @@ const proto = (grpc.loadPackageDefinition(packageDef) as any).trip.v1;
 
 const server = new grpc.Server();
 
-console.log(proto);
-
-// This is a entrie of all APIs
 server.addService(proto.TripService.service, {
   CreateTrip: createTripHandler,
+  GetTrip: getTripHandler,
+  UpdateTrip: updateTripHandler,
+  DeleteTrip: deleteTripHandler,
+  ListTrips: listTripsHandler,
+});
+
+server.addService(proto.EventService.service, {
+  CreateEvent: createEventHandler,
+  GetEvent: getEventHandler,
+  UpdateEvent: updateEventHandler,
+  DeleteEvent: deleteEventHandler,
+  ListEvents: listEventsHandler,
+});
+
+server.addService(proto.ViewService.service, {
+  GetTimeline: getTimelineHandler,
+  GetMapView: getMapViewHandler,
+});
+
+server.addService(proto.BudgetService.service, {
+  GetBudget: getBudgetHandler,
 });
 
 server.bindAsync(`0.0.0.0:${config.port}`, grpc.ServerCredentials.createInsecure(), (err, port) => {
