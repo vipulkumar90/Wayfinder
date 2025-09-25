@@ -1,4 +1,4 @@
-import type { Trip as PrismaTrip, Event as PrismaEvent } from '@prisma/client';
+import type { Trip as PrismaTrip, Event as PrismaEvent } from '@prisma/client/default.js';
 import {
   Category,
   categoryFromJSON,
@@ -8,6 +8,7 @@ import {
 import type { CreateTripInput, UpdateTripInput } from '@/modules/trip/trip.schema.js';
 import type { CreateEventInput, UpdateEventInput } from '@/modules/event/event.schema.js';
 import { toGrpcCategory } from '@/modules/event/category.js';
+import { readField } from '@/utils/object.js';
 
 type TimestampInput =
   | Date
@@ -17,17 +18,6 @@ type TimestampInput =
     }
   | string
   | undefined;
-
-const getFirstDefined = <T = unknown>(source: unknown, keys: string[]): T | undefined => {
-  if (!source || typeof source !== 'object') return undefined;
-  for (const key of keys) {
-    const value = (source as Record<string, T | undefined>)[key];
-    if (value !== undefined && value !== null) {
-      return value;
-    }
-  }
-  return undefined;
-};
 
 const toDateValue = (value: TimestampInput): Date | undefined => {
   if (!value) return undefined;
@@ -111,90 +101,90 @@ export const mapEventModelToMessage = (event: PrismaEvent): EventMessage => ({
 });
 
 export const mapTripMessageToCreateInput = (trip: TripPayload): CreateTripInput => {
-  const startDate = toDateValue(getFirstDefined(trip, ['startDate', 'start_date']));
-  const endDate = toDateValue(getFirstDefined(trip, ['endDate', 'end_date']));
-  const budget = toNumberValue(getFirstDefined(trip, ['budget']));
+  const startDate = toDateValue(readField(trip, 'startDate', 'start_date'));
+  const endDate = toDateValue(readField(trip, 'endDate', 'end_date'));
+  const budget = toNumberValue(readField(trip, 'budget'));
 
   return {
-    title: toTrimmedString(getFirstDefined(trip, ['title'])),
-    userId: toStringOrEmpty(getFirstDefined(trip, ['userId', 'user_id'])),
-    destination: toStringOrEmpty(getFirstDefined(trip, ['destination'])),
+    title: toTrimmedString(readField(trip, 'title')),
+    userId: toStringOrEmpty(readField(trip, 'userId', 'user_id')),
+    destination: toStringOrEmpty(readField(trip, 'destination')),
     startDate: ensureDate(startDate),
     endDate: ensureDate(endDate),
     budget: ensureNumber(budget),
-    currency: toStringOrEmpty(getFirstDefined(trip, ['currency'])),
+    currency: toStringOrEmpty(readField(trip, 'currency')),
   };
 };
 
 export const mapTripMessageToUpdateInput = (trip: TripPayload): UpdateTripInput => {
-  const startDate = toDateValue(getFirstDefined(trip, ['startDate', 'start_date']));
-  const endDate = toDateValue(getFirstDefined(trip, ['endDate', 'end_date']));
-  const budget = toNumberValue(getFirstDefined(trip, ['budget']));
+  const startDate = toDateValue(readField(trip, 'startDate', 'start_date'));
+  const endDate = toDateValue(readField(trip, 'endDate', 'end_date'));
+  const budget = toNumberValue(readField(trip, 'budget'));
 
   return {
-    id: toStringOrEmpty(getFirstDefined(trip, ['id'])),
-    title: toTrimmedString(getFirstDefined(trip, ['title'])),
-    userId: toTrimmedString(getFirstDefined(trip, ['userId', 'user_id'])),
-    destination: toTrimmedString(getFirstDefined(trip, ['destination'])),
+    id: toStringOrEmpty(readField(trip, 'id')),
+    title: toTrimmedString(readField(trip, 'title')),
+    userId: toTrimmedString(readField(trip, 'userId', 'user_id')),
+    destination: toTrimmedString(readField(trip, 'destination')),
     startDate: startDate ?? undefined,
     endDate: endDate ?? undefined,
     budget: budget ?? undefined,
-    currency: toTrimmedString(getFirstDefined(trip, ['currency'])),
+    currency: toTrimmedString(readField(trip, 'currency')),
   };
 };
 
 export const mapEventMessageToCreateInput = (event: EventPayload): CreateEventInput => {
-  const startTime = toDateValue(getFirstDefined(event, ['startTime', 'start_time']));
-  const endTime = toDateValue(getFirstDefined(event, ['endTime', 'end_time']));
-  const locationLat = toNumberValue(getFirstDefined(event, ['locationLat', 'location_lat']));
-  const locationLng = toNumberValue(getFirstDefined(event, ['locationLng', 'location_lng']));
-  const cost = toNumberValue(getFirstDefined(event, ['cost']));
-  const sortOrder = toNumberValue(getFirstDefined(event, ['sortOrder', 'sort_order']));
-  const category = toCategoryValue(getFirstDefined(event, ['category'])) ?? Category.OTHER;
+  const startTime = toDateValue(readField(event, 'startTime', 'start_time'));
+  const endTime = toDateValue(readField(event, 'endTime', 'end_time'));
+  const locationLat = toNumberValue(readField(event, 'locationLat', 'location_lat'));
+  const locationLng = toNumberValue(readField(event, 'locationLng', 'location_lng'));
+  const cost = toNumberValue(readField(event, 'cost'));
+  const sortOrder = toNumberValue(readField(event, 'sortOrder', 'sort_order'));
+  const category = toCategoryValue(readField(event, 'category')) ?? Category.OTHER;
 
   return {
-    tripId: toStringOrEmpty(getFirstDefined(event, ['tripId', 'trip_id'])),
-    title: toStringOrEmpty(getFirstDefined(event, ['title'])),
+    tripId: toStringOrEmpty(readField(event, 'tripId', 'trip_id')),
+    title: toStringOrEmpty(readField(event, 'title')),
     startTime: ensureDate(startTime),
     endTime: endTime ?? undefined,
-    locationName: toTrimmedString(getFirstDefined(event, ['locationName', 'location_name'])),
+    locationName: toTrimmedString(readField(event, 'locationName', 'location_name')),
     locationLat: locationLat ?? undefined,
     locationLng: locationLng ?? undefined,
     cost: cost ?? undefined,
     category,
-    notes: toTrimmedString(getFirstDefined(event, ['notes'])),
+    notes: toTrimmedString(readField(event, 'notes')),
     sortOrder: sortOrder !== undefined ? Math.trunc(sortOrder) : undefined,
   };
 };
 
 export const mapEventMessageToUpdateInput = (event: EventPayload): UpdateEventInput => {
-  const startTime = toDateValue(getFirstDefined(event, ['startTime', 'start_time']));
-  const endTime = toDateValue(getFirstDefined(event, ['endTime', 'end_time']));
-  const locationLat = toNumberValue(getFirstDefined(event, ['locationLat', 'location_lat']));
-  const locationLng = toNumberValue(getFirstDefined(event, ['locationLng', 'location_lng']));
-  const cost = toNumberValue(getFirstDefined(event, ['cost']));
-  const sortOrder = toNumberValue(getFirstDefined(event, ['sortOrder', 'sort_order']));
-  const category = toCategoryValue(getFirstDefined(event, ['category']));
+  const startTime = toDateValue(readField(event, 'startTime', 'start_time'));
+  const endTime = toDateValue(readField(event, 'endTime', 'end_time'));
+  const locationLat = toNumberValue(readField(event, 'locationLat', 'location_lat'));
+  const locationLng = toNumberValue(readField(event, 'locationLng', 'location_lng'));
+  const cost = toNumberValue(readField(event, 'cost'));
+  const sortOrder = toNumberValue(readField(event, 'sortOrder', 'sort_order'));
+  const category = toCategoryValue(readField(event, 'category'));
 
   const result: UpdateEventInput = {
-    id: toStringOrEmpty(getFirstDefined(event, ['id'])),
+    id: toStringOrEmpty(readField(event, 'id')),
   };
 
-  const title = toTrimmedString(getFirstDefined(event, ['title']));
+  const title = toTrimmedString(readField(event, 'title'));
   if (title !== undefined) result.title = title;
 
-  const tripId = toTrimmedString(getFirstDefined(event, ['tripId', 'trip_id']));
+  const tripId = toTrimmedString(readField(event, 'tripId', 'trip_id'));
   if (tripId !== undefined) result.tripId = tripId;
 
   if (startTime) result.startTime = startTime;
   if (endTime) result.endTime = endTime;
-  const locationName = toTrimmedString(getFirstDefined(event, ['locationName', 'location_name']));
+  const locationName = toTrimmedString(readField(event, 'locationName', 'location_name'));
   if (locationName !== undefined) result.locationName = locationName;
   if (locationLat !== undefined) result.locationLat = locationLat;
   if (locationLng !== undefined) result.locationLng = locationLng;
   if (cost !== undefined) result.cost = cost;
   if (category !== undefined) result.category = category;
-  const notes = toTrimmedString(getFirstDefined(event, ['notes']));
+  const notes = toTrimmedString(readField(event, 'notes'));
   if (notes !== undefined) result.notes = notes;
   if (sortOrder !== undefined) result.sortOrder = Math.trunc(sortOrder);
 

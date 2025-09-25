@@ -26,6 +26,7 @@ import {
   mapEventModelToMessage,
 } from './mappers.js';
 import { isPrismaForeignKeyError, isPrismaNotFoundError } from '@/utils/errors.js';
+import { readField } from '@/utils/object.js';
 
 export const createEventHandler = async (
   call: ServerUnaryCall<CreateEventRequest, Event>,
@@ -69,7 +70,9 @@ export const getEventHandler = async (
   callback: sendUnaryData<Event>
 ) => {
   try {
-    const { eventId } = call.request;
+    const eventId =
+      readField<string>(call.request, 'eventId', 'event_id') ??
+      (call.request as unknown as { eventId?: string }).eventId;
     if (!eventId) {
       callback({
         code: grpc.status.INVALID_ARGUMENT,
@@ -147,7 +150,9 @@ export const deleteEventHandler = async (
   callback: sendUnaryData<Empty>
 ) => {
   try {
-    const { eventId } = call.request;
+    const eventId =
+      readField<string>(call.request, 'eventId', 'event_id') ??
+      (call.request as unknown as { eventId?: string }).eventId;
     if (!eventId) {
       callback({
         code: grpc.status.INVALID_ARGUMENT,
@@ -180,7 +185,12 @@ export const listEventsHandler = async (
   callback: sendUnaryData<ListEventsResponse>
 ) => {
   try {
-    const { tripId, fromDate, toDate } = call.request;
+    const tripId =
+      readField<string>(call.request, 'tripId', 'trip_id') ??
+      (call.request as unknown as { tripId?: string }).tripId;
+    const fromDate =
+      readField<Date>(call.request, 'fromDate', 'from_date') ?? call.request.fromDate;
+    const toDate = readField<Date>(call.request, 'toDate', 'to_date') ?? call.request.toDate;
     if (!tripId) {
       callback({
         code: grpc.status.INVALID_ARGUMENT,

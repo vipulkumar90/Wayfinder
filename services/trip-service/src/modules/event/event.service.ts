@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma.js';
 import logger from '@/lib/logger.js';
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '@prisma/client/default.js';
 import {
   CreateEventInput,
   UpdateEventInput,

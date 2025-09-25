@@ -1,4 +1,4 @@
-import type { Prisma, Event as PrismaEvent } from '@prisma/client';
+import type { Prisma, Event as PrismaEvent } from '@prisma/client/default.js';
 import { getTripWithEvents, type TripWithEvents } from '@/modules/trip/trip.service.js';
 
 const startOfDayUtc = (date: Date) => {
@@ -68,11 +68,7 @@ const buildDayRange = (trip: TripWithEvents, fromDate?: Date, toDate?: Date): Da
   return days;
 };
 
-export const buildTimeline = async (params: {
-  tripId: string;
-  fromDate?: Date;
-  toDate?: Date;
-}) => {
+export const buildTimeline = async (params: { tripId: string; fromDate?: Date; toDate?: Date }) => {
   const trip = await getTripWithEvents(params.tripId);
   if (!trip) {
     return null;
@@ -100,10 +96,7 @@ type MapDay = {
 const filterEventsWithLocation = (events: PrismaEvent[]) =>
   events.filter((event) => event.locationLat !== null && event.locationLng !== null);
 
-export const buildMapView = async (params: {
-  tripId: string;
-  date?: Date;
-}) => {
+export const buildMapView = async (params: { tripId: string; date?: Date }) => {
   const trip = await getTripWithEvents(params.tripId);
   if (!trip) {
     return null;

@@ -34,7 +34,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Here is a absolute path
-const PROTO_FILE = path.resolve(__dirname, '../../../shared/protos/trip.proto');
+const protoPath =
+  config.env === 'development'
+    ? '../../../shared/protos/trip.proto'
+    : '../shared/protos/trip.proto';
+const PROTO_FILE = path.resolve(__dirname, protoPath);
 
 const options: protoLoader.Options = {
   keepCase: true,

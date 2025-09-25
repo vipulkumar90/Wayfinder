@@ -3,13 +3,16 @@ import grpc from '@grpc/grpc-js';
 import type { GetBudgetRequest, GetBudgetResponse, BudgetSummary } from '@/generated/trip.js';
 import logger from '@/lib/logger.js';
 import { buildBudgetSummary } from '@/modules/budget/budget.service.js';
+import { readField } from '@/utils/object.js';
 
 export const getBudgetHandler = async (
   call: ServerUnaryCall<GetBudgetRequest, GetBudgetResponse>,
   callback: sendUnaryData<GetBudgetResponse>
 ) => {
   try {
-    const { tripId } = call.request;
+    const tripId =
+      readField<string>(call.request, 'tripId', 'trip_id') ??
+      (call.request as unknown as { tripId?: string }).tripId;
     if (!tripId) {
       callback({
         code: grpc.status.INVALID_ARGUMENT,

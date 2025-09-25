@@ -1,7 +1,7 @@
 import winston from 'winston';
 import config from '@/config/env.js';
 
-const enumerateErrorFormat = winston.format((info) => {
+const enumerateErrorFormat = winston.format((info: winston.Logform.TransformableInfo) => {
   if (info instanceof Error || (info.message && info.message instanceof Error)) {
     Object.assign(info, { message: info.stack });
   }
@@ -15,10 +15,10 @@ const devFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   enumerateErrorFormat(),
   winston.format.splat(),
-  winston.format.printf(({ timestamp, message, level }) => {
-    const ts = String(timestamp); // Provide a fallback for undefined
-    const lvl = String(level);
-    const msg = String(message);
+  winston.format.printf((info: winston.Logform.TransformableInfo) => {
+    const ts = String(info.timestamp ?? '');
+    const lvl = String(info.level);
+    const msg = String(info.message);
     return `[${ts}] ${lvl}: ${msg}`;
   })
 );

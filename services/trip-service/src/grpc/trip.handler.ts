@@ -26,6 +26,7 @@ import {
   mapTripModelToMessage,
 } from './mappers.js';
 import { isPrismaNotFoundError } from '@/utils/errors.js';
+import { readField } from '@/utils/object.js';
 
 export const createTripHandler = async (
   call: ServerUnaryCall<CreateTripRequest, Trip>,
@@ -42,7 +43,6 @@ export const createTripHandler = async (
       return;
     }
 
-    console.log(tripData);
     const input = mapTripMessageToCreateInput(tripData);
     const validated = validateInput(createTripSchema, input, callback);
     if (!validated) return;
@@ -63,7 +63,9 @@ export const getTripHandler = async (
   callback: sendUnaryData<Trip>
 ) => {
   try {
-    const { tripId } = call.request;
+    const tripId =
+      readField<string>(call.request, 'tripId', 'trip_id') ??
+      (call.request as unknown as { tripId?: string }).tripId;
     if (!tripId) {
       callback({
         code: grpc.status.INVALID_ARGUMENT,
@@ -133,7 +135,9 @@ export const deleteTripHandler = async (
   callback: sendUnaryData<Empty>
 ) => {
   try {
-    const { tripId } = call.request;
+    const tripId =
+      readField<string>(call.request, 'tripId', 'trip_id') ??
+      (call.request as unknown as { tripId?: string }).tripId;
     if (!tripId) {
       callback({
         code: grpc.status.INVALID_ARGUMENT,
@@ -166,7 +170,11 @@ export const listTripsHandler = async (
   callback: sendUnaryData<ListTripsResponse>
 ) => {
   try {
-    const { userId, pageSize, pageToken } = call.request;
+    const userId = readField<string>(call.request, 'userId', 'user_id');
+    const pageSize =
+      readField<number>(call.request, 'pageSize', 'page_size') ?? call.request.pageSize;
+    const pageToken =
+      readField<string>(call.request, 'pageToken', 'page_token') ?? call.request.pageToken;
 
     const result = await listTrips({
       userId: userId || undefined,

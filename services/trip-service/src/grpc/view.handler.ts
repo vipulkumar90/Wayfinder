@@ -12,13 +12,19 @@ import type {
 import logger from '@/lib/logger.js';
 import { buildTimeline, buildMapView } from '@/modules/view/view.service.js';
 import { mapEventModelToMessage } from './mappers.js';
+import { readField } from '@/utils/object.js';
 
 export const getTimelineHandler = async (
   call: ServerUnaryCall<GetTimelineRequest, GetTimelineResponse>,
   callback: sendUnaryData<GetTimelineResponse>
 ) => {
   try {
-    const { tripId, fromDate, toDate } = call.request;
+    const tripId =
+      readField<string>(call.request, 'tripId', 'trip_id') ??
+      (call.request as unknown as { tripId?: string }).tripId;
+    const fromDate =
+      readField<Date>(call.request, 'fromDate', 'from_date') ?? call.request.fromDate;
+    const toDate = readField<Date>(call.request, 'toDate', 'to_date') ?? call.request.toDate;
     if (!tripId) {
       callback({
         code: grpc.status.INVALID_ARGUMENT,
@@ -71,7 +77,10 @@ export const getMapViewHandler = async (
   callback: sendUnaryData<GetMapViewResponse>
 ) => {
   try {
-    const { tripId, date } = call.request;
+    const tripId =
+      readField<string>(call.request, 'tripId', 'trip_id') ??
+      (call.request as unknown as { tripId?: string }).tripId;
+    const date = readField<Date>(call.request, 'date') ?? call.request.date;
     if (!tripId) {
       callback({
         code: grpc.status.INVALID_ARGUMENT,
