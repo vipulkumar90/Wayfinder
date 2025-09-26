@@ -1,0 +1,44 @@
+services:
+  trip-service:
+    build:
+      context: ..
+      dockerfile: ./services/trip-service/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://wayfinder:123456@postgredb:5432/tripdb?schema=public
+      NODE_ENV: production
+      PORT: "50051"
+    depends_on:
+      postgredb:
+        condition: service_healthy
+    ports:
+      - "50051:50051"
+    networks:
+      - node-network
+
+  postgredb:
+    image: postgres
+    restart: always
+    container_name: postgredb
+    environment:
+      POSTGRES_USER: wayfinder
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: tripdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    networks:
+      - node-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wayfinder -d tripdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  dbdata:
+    driver: local
+
+networks:
+  node-network:
+    driver: bridge
