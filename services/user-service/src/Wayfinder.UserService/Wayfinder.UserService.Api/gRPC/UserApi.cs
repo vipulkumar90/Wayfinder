@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using Grpc.Core;
 using User.V1;
-using Wayfinder.UserService.Api.Entity;
-using Wayfinder.UserService.Api.Repository;
+using Wayfinder.DataLayer.Entity;
+using Wayfinder.DataLayer.Repository;
 
 namespace Wayfinder.UserService.Api.gRPC
 {

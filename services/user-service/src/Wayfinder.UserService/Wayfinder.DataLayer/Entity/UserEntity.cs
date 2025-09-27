@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Wayfinder.UserService.Api.Entity
+namespace Wayfinder.DataLayer.Entity
 {
     /// <summary>
     /// Represents a user entity mapped to the "Users" database table, containing identifying and contact information,

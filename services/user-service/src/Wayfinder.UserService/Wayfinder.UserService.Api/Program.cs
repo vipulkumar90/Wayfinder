@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Wayfinder.UserService.Api.DataContext;
-using Wayfinder.UserService.Api.Entity;
+using Wayfinder.DataLayer.DataContext;
+using Wayfinder.DataLayer.Entity;
 using Wayfinder.UserService.Api.gRPC;
 using User.V1;
-using Wayfinder.UserService.Api.Repository;
+using Wayfinder.DataLayer.Repository;
 using Microsoft.OpenApi.Models;
 using Wayfinder.UserService.Api.MapperProfile;
 

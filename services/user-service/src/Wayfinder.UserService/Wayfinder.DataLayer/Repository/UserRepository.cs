@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using Wayfinder.UserService.Api.DataContext;
-using Wayfinder.UserService.Api.Entity;
+using Wayfinder.DataLayer.DataContext;
+using Wayfinder.DataLayer.Entity;
 
-namespace Wayfinder.UserService.Api.Repository
+namespace Wayfinder.DataLayer.Repository
 {
     /// <summary>
     /// Provides methods for managing and retrieving user entities in the data store.

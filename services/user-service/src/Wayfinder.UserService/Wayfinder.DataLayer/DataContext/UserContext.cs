@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Wayfinder.UserService.Api.Entity;
+using Wayfinder.DataLayer.Entity;
 
-namespace Wayfinder.UserService.Api.DataContext
+namespace Wayfinder.DataLayer.DataContext
 {
     /// <summary>
     /// Represents the Entity Framework database context for user-related data, providing access to user entities and
@@ -90,6 +90,72 @@ namespace Wayfinder.UserService.Api.DataContext
                 .IsUnique()
                 .HasFilter("[PhoneNumber] IS NOT NULL");
             base.OnModelCreating(modelBuilder);
+
+            // Seed data
+            var seedDate = new DateTime(2025, 09, 27, 0, 0, 0, DateTimeKind.Utc);
+
+            modelBuilder.Entity<UserEntity>().HasData(
+                new UserEntity
+                {
+                    Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                    Username = "itadori",
+                    Email = "itadori.yuji@jjk.com",
+                    FirstName = "Yuji",
+                    LastName = "Itadori",
+                    PhoneNumber = "1000000001",
+                    CreatedAt = seedDate,
+                    UpdatedAt = seedDate,
+                    IsActive = true
+                },
+                new UserEntity
+                {
+                    Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
+                    Username = "fushiguro",
+                    Email = "megumi.fushiguro@jjk.com",
+                    FirstName = "Megumi",
+                    LastName = "Fushiguro",
+                    PhoneNumber = "1000000002",
+                    CreatedAt = seedDate,
+                    UpdatedAt = seedDate,
+                    IsActive = true
+                },
+                new UserEntity
+                {
+                    Id = Guid.Parse("33333333-3333-3333-3333-333333333333"),
+                    Username = "kugisaki",
+                    Email = "nobara.kugisaki@jjk.com",
+                    FirstName = "Nobara",
+                    LastName = "Kugisaki",
+                    PhoneNumber = "1000000003",
+                    CreatedAt = seedDate,
+                    UpdatedAt = seedDate,
+                    IsActive = false
+                },
+                new UserEntity
+                {
+                    Id = Guid.Parse("44444444-4444-4444-4444-444444444444"),
+                    Username = "gojo",
+                    Email = "satoru.gojo@jjk.com",
+                    FirstName = "Satoru",
+                    LastName = "Gojo",
+                    PhoneNumber = "1000000004",
+                    CreatedAt = seedDate,
+                    UpdatedAt = seedDate,
+                    IsActive = true
+                },
+                new UserEntity
+                {
+                    Id = Guid.Parse("55555555-5555-5555-5555-555555555555"),
+                    Username = "nanami",
+                    Email = "kento.nanami@jjk.com",
+                    FirstName = "Kento",
+                    LastName = "Nanami",
+                    PhoneNumber = "1000000005",
+                    CreatedAt = seedDate,
+                    UpdatedAt = seedDate,
+                    IsActive = false
+                }
+            );
         }
     }
 }
