@@ -92,8 +92,6 @@ export interface Trip {
   title?:
     | string
     | undefined;
-  /** optional for single-user, kept for future multi-user */
-  userId: string;
   /** e.g. "Japan, France" */
   destination: string;
   /** date/time */
@@ -116,7 +114,6 @@ export interface Event {
   id: string;
   tripId: string;
   title: string;
-  /** start_time and end_time are optional; if omitted, event is "all-day" for that date */
   startTime?: Date | undefined;
   endTime?:
     | Date
@@ -125,7 +122,6 @@ export interface Event {
   locationName: string;
   locationLat: number;
   locationLng: number;
-  /** numeric cost; currency assumed to be Trip.currency */
   cost: number;
   category: Category;
   notes: string;
@@ -167,8 +163,6 @@ export interface DeleteTripRequest {
 }
 
 export interface ListTripsRequest {
-  /** optional, filter by user */
-  userId: string;
   pageSize: number;
   pageToken: string;
 }
@@ -213,13 +207,11 @@ export interface ListEventsResponse {
 export interface GetTimelineRequest {
   /** required */
   tripId: string;
-  /** optional: return timeline for this date range; otherwise entire trip */
   fromDate?: Date | undefined;
   toDate?: Date | undefined;
 }
 
 export interface DayTimeline {
-  /** date of the day represented (date-only as timestamp with midnight) */
   date?:
     | Date
     | undefined;
@@ -233,7 +225,6 @@ export interface GetTimelineResponse {
 
 export interface GetMapViewRequest {
   tripId: string;
-  /** optional: if omitted, return for all days */
   date?: Date | undefined;
 }
 
@@ -247,10 +238,7 @@ export interface MapPoint {
 }
 
 export interface DayMap {
-  date?:
-    | Date
-    | undefined;
-  /** ordered points for display/route */
+  date?: Date | undefined;
   points: MapPoint[];
 }
 
@@ -271,7 +259,6 @@ function createBaseTrip(): Trip {
   return {
     id: "",
     title: undefined,
-    userId: "",
     destination: "",
     startDate: undefined,
     endDate: undefined,
@@ -289,9 +276,6 @@ export const Trip: MessageFns<Trip> = {
     }
     if (message.title !== undefined) {
       writer.uint32(18).string(message.title);
-    }
-    if (message.userId !== "") {
-      writer.uint32(26).string(message.userId);
     }
     if (message.destination !== "") {
       writer.uint32(34).string(message.destination);
@@ -338,14 +322,6 @@ export const Trip: MessageFns<Trip> = {
           }
 
           message.title = reader.string();
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.userId = reader.string();
           continue;
         }
         case 4: {
@@ -417,7 +393,6 @@ export const Trip: MessageFns<Trip> = {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       title: isSet(object.title) ? globalThis.String(object.title) : undefined,
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
       destination: isSet(object.destination) ? globalThis.String(object.destination) : "",
       startDate: isSet(object.startDate) ? fromJsonTimestamp(object.startDate) : undefined,
       endDate: isSet(object.endDate) ? fromJsonTimestamp(object.endDate) : undefined,
@@ -435,9 +410,6 @@ export const Trip: MessageFns<Trip> = {
     }
     if (message.title !== undefined) {
       obj.title = message.title;
-    }
-    if (message.userId !== "") {
-      obj.userId = message.userId;
     }
     if (message.destination !== "") {
       obj.destination = message.destination;
@@ -470,7 +442,6 @@ export const Trip: MessageFns<Trip> = {
     const message = createBaseTrip();
     message.id = object.id ?? "";
     message.title = object.title ?? undefined;
-    message.userId = object.userId ?? "";
     message.destination = object.destination ?? "";
     message.startDate = object.startDate ?? undefined;
     message.endDate = object.endDate ?? undefined;
@@ -1207,14 +1178,11 @@ export const DeleteTripRequest: MessageFns<DeleteTripRequest> = {
 };
 
 function createBaseListTripsRequest(): ListTripsRequest {
-  return { userId: "", pageSize: 0, pageToken: "" };
+  return { pageSize: 0, pageToken: "" };
 }
 
 export const ListTripsRequest: MessageFns<ListTripsRequest> = {
   encode(message: ListTripsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.userId !== "") {
-      writer.uint32(10).string(message.userId);
-    }
     if (message.pageSize !== 0) {
       writer.uint32(16).int32(message.pageSize);
     }
@@ -1231,14 +1199,6 @@ export const ListTripsRequest: MessageFns<ListTripsRequest> = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.userId = reader.string();
-          continue;
-        }
         case 2: {
           if (tag !== 16) {
             break;
@@ -1266,7 +1226,6 @@ export const ListTripsRequest: MessageFns<ListTripsRequest> = {
 
   fromJSON(object: any): ListTripsRequest {
     return {
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
       pageSize: isSet(object.pageSize) ? globalThis.Number(object.pageSize) : 0,
       pageToken: isSet(object.pageToken) ? globalThis.String(object.pageToken) : "",
     };
@@ -1274,9 +1233,6 @@ export const ListTripsRequest: MessageFns<ListTripsRequest> = {
 
   toJSON(message: ListTripsRequest): unknown {
     const obj: any = {};
-    if (message.userId !== "") {
-      obj.userId = message.userId;
-    }
     if (message.pageSize !== 0) {
       obj.pageSize = Math.round(message.pageSize);
     }
@@ -1291,7 +1247,6 @@ export const ListTripsRequest: MessageFns<ListTripsRequest> = {
   },
   fromPartial<I extends Exact<DeepPartial<ListTripsRequest>, I>>(object: I): ListTripsRequest {
     const message = createBaseListTripsRequest();
-    message.userId = object.userId ?? "";
     message.pageSize = object.pageSize ?? 0;
     message.pageToken = object.pageToken ?? "";
     return message;

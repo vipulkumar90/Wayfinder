@@ -5,7 +5,7 @@ const config: Config = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
   moduleNameMapper: {
-    '^./google/protobuf/(.*)\\.js$': '<rootDir>/src/generated/google/protobuf/$1.ts',
+    '^./google/protobuf/(.*)\\.js$': '<rootDir>/src/grpc/__generated__/google/protobuf/$1.ts',
     '^./trip.schema.js$': '<rootDir>/src/modules/trip/trip.schema.ts',
     '^./event.schema.js$': '<rootDir>/src/modules/event/event.schema.ts',
     '^./category.js$': '<rootDir>/src/modules/event/category.ts',
@@ -25,7 +25,7 @@ const config: Config = {
     ],
   },
   setupFiles: ['dotenv/config'],
-  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/generated/**', '!src/**/*.d.ts'],
+  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/grpc/__generated__/**', '!src/**/*.d.ts'],
   coverageDirectory: 'coverage',
 };
 

@@ -4,7 +4,7 @@ import {
   categoryFromJSON,
   type Trip as TripMessage,
   type Event as EventMessage,
-} from '@/generated/trip.js';
+} from '@/grpc/__generated__/trip.js';
 import type { CreateTripInput, UpdateTripInput } from '@/modules/trip/trip.schema.js';
 import type { CreateEventInput, UpdateEventInput } from '@/modules/event/event.schema.js';
 import { toGrpcCategory } from '@/modules/event/category.js';
@@ -74,7 +74,6 @@ type EventPayload = EventMessage | Record<string, unknown>;
 export const mapTripModelToMessage = (trip: PrismaTrip): TripMessage => ({
   id: trip.id,
   title: trip.title ?? undefined,
-  userId: trip.userId,
   destination: trip.destination,
   startDate: trip.startDate,
   endDate: trip.endDate,
@@ -107,7 +106,6 @@ export const mapTripMessageToCreateInput = (trip: TripPayload): CreateTripInput 
 
   return {
     title: toTrimmedString(readField(trip, 'title')),
-    userId: toStringOrEmpty(readField(trip, 'userId', 'user_id')),
     destination: toStringOrEmpty(readField(trip, 'destination')),
     startDate: ensureDate(startDate),
     endDate: ensureDate(endDate),
@@ -124,7 +122,6 @@ export const mapTripMessageToUpdateInput = (trip: TripPayload): UpdateTripInput 
   return {
     id: toStringOrEmpty(readField(trip, 'id')),
     title: toTrimmedString(readField(trip, 'title')),
-    userId: toTrimmedString(readField(trip, 'userId', 'user_id')),
     destination: toTrimmedString(readField(trip, 'destination')),
     startDate: startDate ?? undefined,
     endDate: endDate ?? undefined,

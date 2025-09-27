@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import grpc from '@grpc/grpc-js';
-import type { CreateTripRequest, Trip as TripMessage } from '@/generated/trip.js';
+import type { CreateTripRequest, Trip as TripMessage } from '@/grpc/__generated__/trip.js';
 import type { Trip } from '@prisma/client/default.js';
 
-const createTripMock: jest.MockedFunction<(input: any) => Promise<Trip>> = jest.fn();
+const createTripMock: jest.MockedFunction<(input: any, userId: string) => Promise<Trip>> =
+  jest.fn();
 const getTripMock = jest.fn();
 const updateTripMock = jest.fn();
 const deleteTripMock = jest.fn();
@@ -26,8 +27,17 @@ jest.unstable_mockModule('@/utils/validate.js', () => ({
 
 const { createTripHandler } = await import('@/grpc/trip.handler.js');
 
-const buildCall = (request: Partial<CreateTripRequest>) =>
-  ({ request } as unknown as grpc.ServerUnaryCall<CreateTripRequest, TripMessage>);
+const buildMetadata = (userId = 'user_123') => {
+  const metadata = new grpc.Metadata();
+  metadata.set('x-user-id', userId);
+  return metadata;
+};
+
+const buildCall = (request: Partial<CreateTripRequest>, metadata = buildMetadata()) =>
+  ({
+    request: request as CreateTripRequest,
+    metadata,
+  } as unknown as grpc.ServerUnaryCall<CreateTripRequest, TripMessage>);
 
 describe('trip.handler - CreateTrip', () => {
   afterEach(() => {
@@ -58,7 +68,7 @@ describe('trip.handler - CreateTrip', () => {
       updatedAt: new Date('2025-01-01T01:00:00Z'),
     };
 
-    validateInputMock.mockReturnValue(tripInput);
+    validateInputMock.mockImplementation((_schema, data) => data);
     createTripMock.mockResolvedValue(createdTrip);
 
     const callback = jest.fn();
@@ -67,13 +77,22 @@ describe('trip.handler - CreateTrip', () => {
     await createTripHandler(call, callback);
 
     expect(validateInputMock).toHaveBeenCalledTimes(1);
-    expect(createTripMock).toHaveBeenCalledWith(tripInput);
+    expect(validateInputMock).toHaveBeenCalledWith(expect.anything(), expect.anything(), callback);
+    expect(createTripMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: tripInput.title,
+        destination: tripInput.destination,
+        budget: tripInput.budget,
+        currency: tripInput.currency,
+      }),
+      'user_123'
+    );
     expect(callback).toHaveBeenCalledTimes(1);
     const [error, response] = callback.mock.calls[0] as [grpc.ServiceError | null, TripMessage?];
     expect(error).toBeNull();
     expect(response).toMatchObject({
       id: 'trip_123',
-      userId: tripInput.userId,
+      title: tripInput.title,
       destination: tripInput.destination,
       budget: tripInput.budget,
       currency: tripInput.currency,

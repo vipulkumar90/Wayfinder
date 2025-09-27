@@ -1,12 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 import { mapTripMessageToCreateInput, mapEventMessageToCreateInput } from '@/grpc/mappers.js';
-import { Category } from '@/generated/trip.js';
+import { Category } from '@/grpc/__generated__/trip.js';
 
 describe('mappers', () => {
   it('converts snake_case trip payload into domain input', () => {
     const payload = {
       title: 'Kyoto Escape',
-      user_id: 'user_123',
       destination: 'Kyoto, Japan',
       start_date: { seconds: 1744243200, nanos: 0 },
       end_date: { seconds: 1744329600, nanos: 0 },
@@ -16,7 +15,6 @@ describe('mappers', () => {
 
     const input = mapTripMessageToCreateInput(payload as any);
 
-    expect(input.userId).toBe('user_123');
     expect(input.startDate.toISOString()).toBe('2025-04-10T00:00:00.000Z');
     expect(input.endDate.toISOString()).toBe('2025-04-11T00:00:00.000Z');
     expect(input.budget).toBe(2500);

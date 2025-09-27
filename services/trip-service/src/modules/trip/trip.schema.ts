@@ -9,7 +9,6 @@ export const createTripSchema = z
       .trim()
       .min(1, 'title cannot be empty when provided')
       .optional(),
-    userId: z.string().min(1, 'userId is required'),
     destination: z.string().min(1, 'destination is required'),
     startDate: z.date(),
     endDate: z.date(),
@@ -31,7 +30,6 @@ export const updateTripSchema = createTripSchema
     budget: true,
     currency: true,
     title: true,
-    userId: true,
   })
   .extend({
     id: z.string().min(1, 'trip id is required'),
