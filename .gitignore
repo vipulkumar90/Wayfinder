@@ -1,2 +1,7 @@
-# Git ignore rules 
-.vs
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/services/user-service/src/Wayfinder.UserService/.vs
+/services/user-service/src/Wayfinder.UserService/Wayfinder.UserService.Api/Migrations
