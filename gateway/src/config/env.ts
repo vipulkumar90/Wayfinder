@@ -11,6 +11,8 @@ const envSchema = z.object({
     .string()
     .min(1, "TRIP_SERVICE_URL is required")
     .default("localhost:50051"),
+  USER_SERVICE_URL: z.string().min(1).optional(),
+  AUTH_SERVICE_URL: z.string().min(1).optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -28,5 +30,7 @@ export default {
   port: env.PORT,
   grpc: {
     tripServiceUrl: env.TRIP_SERVICE_URL,
+    userServiceUrl: env.USER_SERVICE_URL ?? null,
+    authServiceUrl: env.AUTH_SERVICE_URL ?? null,
   },
 };

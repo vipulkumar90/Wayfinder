@@ -1,11 +1,6 @@
 import type { Request } from "express";
 import type { Metadata } from "@grpc/grpc-js";
-import type {
-  BudgetGrpcClient,
-  EventGrpcClient,
-  TripGrpcClient,
-  ViewGrpcClient,
-} from "@/grpc/clients.js";
+import type { GrpcClientBundle } from "@/grpc/clients.js";
 
 /**
  * Core context passed to every GraphQL resolver.
@@ -25,12 +20,7 @@ export interface RequestContext {
 /**
  * Lazily shared gRPC clients for downstream microservices.
  */
-export interface GrpcClients {
-  trip: TripGrpcClient;
-  event: EventGrpcClient;
-  view: ViewGrpcClient;
-  budget: BudgetGrpcClient;
-}
+export type GrpcClients = GrpcClientBundle;
 
 /**
  * Combined context shape available to resolvers.

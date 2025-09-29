@@ -1,0 +1,67 @@
+import { Camera, MapPin, Mountain } from "lucide-react"
+
+import type { DestinationCard } from "./types"
+
+export const POPULAR_DESTINATIONS: string[] = [
+  "Japan",
+  "Tokyo",
+  "Kyoto",
+  "Osaka",
+  "Paris",
+  "London",
+  "New York",
+  "Los Angeles",
+  "Rome",
+  "Barcelona",
+  "Amsterdam",
+  "Berlin",
+  "Bangkok",
+  "Singapore",
+  "Hong Kong",
+  "Seoul",
+  "Sydney",
+  "Melbourne",
+  "Dubai",
+  "Istanbul",
+  "Bali",
+  "Phuket",
+  "Santorini",
+  "Mykonos",
+  "Reykjavik",
+  "Copenhagen",
+  "Stockholm",
+  "Oslo",
+  "Prague",
+  "Vienna",
+  "Budapest",
+  "Krakow",
+  "Lisbon",
+  "Madrid",
+  "Florence",
+  "Venice",
+  "Cairo",
+  "Marrakech",
+  "Cape Town",
+  "Nairobi",
+]
+
+export const DESTINATION_CARDS: DestinationCard[] = [
+  {
+    title: "Explore Beaches",
+    description: "Discover pristine coastlines and crystal-clear waters",
+    image: "/tropical-beach-paradise-with-palm-trees-and-turquo.jpg",
+    icon: Camera,
+  },
+  {
+    title: "City Adventures",
+    description: "Immerse yourself in vibrant urban experiences",
+    image: "/modern-city-skyline-at-sunset-with-skyscrapers-and.jpg",
+    icon: MapPin,
+  },
+  {
+    title: "Mountain Trails",
+    description: "Conquer breathtaking peaks and scenic routes",
+    image: "/majestic-mountain-trail-with-hiking-path-and-alpin.jpg",
+    icon: Mountain,
+  },
+]

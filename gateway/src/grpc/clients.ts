@@ -1,4 +1,8 @@
-import grpc, { type Metadata, type ServiceError } from "@grpc/grpc-js";
+import grpc, {
+  type ChannelCredentials,
+  type Metadata,
+  type ServiceError,
+} from "@grpc/grpc-js";
 import config from "@/config/env.js";
 import logger from "@/lib/logger.js";
 import {
@@ -29,6 +33,20 @@ import {
 } from "@/grpc/__generated__/trip.js";
 
 const openClients: grpc.Client[] = [];
+
+type GrpcClientCtor<T extends grpc.Client> = new (
+  address: string,
+  credentials: ChannelCredentials
+) => T;
+
+const createServiceClient = <T extends grpc.Client>(
+  Ctor: GrpcClientCtor<T>,
+  address: string
+): T => {
+  const client = new Ctor(address, grpc.credentials.createInsecure());
+  openClients.push(client);
+  return client;
+};
 
 const createUnaryCaller =
   <TRequest, TResponse>(client: grpc.Client, methodName: string) =>
@@ -104,29 +122,37 @@ export interface BudgetGrpcClient {
   ): Promise<GetBudgetResponse>;
 }
 
-export interface GrpcClientBundle {
+export interface TripServiceClients {
   trip: TripGrpcClient;
   event: EventGrpcClient;
   view: ViewGrpcClient;
   budget: BudgetGrpcClient;
 }
 
+export interface UserServiceClients {
+  /** Replace with concrete user service clients once user.proto is available. */
+}
+
+export interface AuthServiceClients {
+  /** Replace with concrete auth service clients once auth.proto is available. */
+}
+
+export interface GrpcClientBundle extends TripServiceClients {
+  user?: UserServiceClients;
+  auth?: AuthServiceClients;
+  services: {
+    trip: TripServiceClients;
+    user?: UserServiceClients;
+    auth?: AuthServiceClients;
+  };
+}
+
 const buildTripClient = (address: string): TripGrpcClient => {
-  const client = new TripServiceClient(
-    address,
-    grpc.credentials.createInsecure()
-  );
-  openClients.push(client);
+  const client = createServiceClient(TripServiceClient, address);
   return {
-    createTrip: createUnaryCaller<CreateTripRequest, Trip>(
-      client,
-      "createTrip"
-    ),
+    createTrip: createUnaryCaller<CreateTripRequest, Trip>(client, "createTrip"),
     getTrip: createUnaryCaller<GetTripRequest, Trip>(client, "getTrip"),
-    updateTrip: createUnaryCaller<UpdateTripRequest, Trip>(
-      client,
-      "updateTrip"
-    ),
+    updateTrip: createUnaryCaller<UpdateTripRequest, Trip>(client, "updateTrip"),
     deleteTrip: createUnaryCaller<DeleteTripRequest, Record<string, never>>(
       client,
       "deleteTrip"
@@ -139,11 +165,7 @@ const buildTripClient = (address: string): TripGrpcClient => {
 };
 
 const buildEventClient = (address: string): EventGrpcClient => {
-  const client = new EventServiceClient(
-    address,
-    grpc.credentials.createInsecure()
-  );
-  openClients.push(client);
+  const client = createServiceClient(EventServiceClient, address);
   return {
     createEvent: createUnaryCaller<CreateEventRequest, Event>(
       client,
@@ -166,11 +188,7 @@ const buildEventClient = (address: string): EventGrpcClient => {
 };
 
 const buildViewClient = (address: string): ViewGrpcClient => {
-  const client = new ViewServiceClient(
-    address,
-    grpc.credentials.createInsecure()
-  );
-  openClients.push(client);
+  const client = createServiceClient(ViewServiceClient, address);
   return {
     getTimeline: createUnaryCaller<GetTimelineRequest, GetTimelineResponse>(
       client,
@@ -184,17 +202,35 @@ const buildViewClient = (address: string): ViewGrpcClient => {
 };
 
 const buildBudgetClient = (address: string): BudgetGrpcClient => {
-  const client = new BudgetServiceClient(
-    address,
-    grpc.credentials.createInsecure()
-  );
-  openClients.push(client);
+  const client = createServiceClient(BudgetServiceClient, address);
   return {
     getBudget: createUnaryCaller<GetBudgetRequest, GetBudgetResponse>(
       client,
       "getBudget"
     ),
   };
+};
+
+const buildTripServiceClients = (address: string): TripServiceClients => {
+  logger.info("✅ Connecting to Trip gRPC service at %s", address);
+  return {
+    trip: buildTripClient(address),
+    event: buildEventClient(address),
+    view: buildViewClient(address),
+    budget: buildBudgetClient(address),
+  };
+};
+
+const buildSkeletonService = <T extends object>(
+  serviceName: string,
+  address: string
+): T => {
+  logger.warn(
+    "%s gRPC client skeleton initialised for %s; add concrete clients when ready.",
+    serviceName,
+    address
+  );
+  return Object.freeze({}) as T;
 };
 
 let memoizedClients: GrpcClientBundle | null = null;
@@ -204,14 +240,29 @@ export const getGrpcClients = (): GrpcClientBundle => {
     return memoizedClients;
   }
 
-  const target = config.grpc.tripServiceUrl;
-  logger.info(`✅ Connecting to gRPC services at ${target}`);
+  const services: GrpcClientBundle["services"] = {
+    trip: buildTripServiceClients(config.grpc.tripServiceUrl),
+  };
+
+  if (config.grpc.userServiceUrl) {
+    services.user = buildSkeletonService<UserServiceClients>(
+      "User",
+      config.grpc.userServiceUrl
+    );
+  }
+
+  if (config.grpc.authServiceUrl) {
+    services.auth = buildSkeletonService<AuthServiceClients>(
+      "Auth",
+      config.grpc.authServiceUrl
+    );
+  }
 
   memoizedClients = {
-    trip: buildTripClient(target),
-    event: buildEventClient(target),
-    view: buildViewClient(target),
-    budget: buildBudgetClient(target),
+    ...services.trip,
+    services,
+    ...(services.user ? { user: services.user } : {}),
+    ...(services.auth ? { auth: services.auth } : {}),
   };
 
   return memoizedClients;
