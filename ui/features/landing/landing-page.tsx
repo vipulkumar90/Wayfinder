@@ -21,7 +21,7 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <SiteHeader onCtaClick={handleStartPlanning} />
+      <SiteHeader />
       <main className="flex-1">
         <HeroSection onStartPlanning={handleStartPlanning} />
         <FeaturesGrid features={LANDING_FEATURES} />
