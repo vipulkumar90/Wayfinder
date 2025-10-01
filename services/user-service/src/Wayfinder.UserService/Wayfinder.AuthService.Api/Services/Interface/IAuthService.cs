@@ -10,7 +10,7 @@ namespace Wayfinder.AuthService.Api.Services.Interface
         /// </summary>
         /// <param name="password"></param>
         /// <returns>Returns true if the password is strong</returns>
-        bool ValidatePasswordStrength(string password);
+        PasswordValidationResult ValidatePasswordStrength(string password);
         /// <summary>
         /// Generates a secure hash and salt for the provided raw password.
         /// </summary>

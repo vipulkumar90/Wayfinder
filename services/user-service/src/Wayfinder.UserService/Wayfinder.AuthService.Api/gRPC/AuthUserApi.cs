@@ -1,4 +1,5 @@
 ﻿using Authuser.V1;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Google.Type;
 using Grpc.Core;
@@ -11,10 +12,13 @@ namespace Wayfinder.AuthService.Api.gRPC
     public class AuthUserApi : Authuser.V1.AuthUserService.AuthUserServiceBase
     {
         private readonly IAuthService _authService;
+        private readonly ILogger<AuthUserApi> _logger;
 
-        public AuthUserApi(IAuthService authService)
+        public AuthUserApi(IAuthService authService,
+            ILogger<AuthUserApi> logger)
         {
             _authService = authService;
+            _logger = logger;
         }
         public override async Task<RegisterUserResponse> RegisterUser(RegisterUserRequest request, ServerCallContext context)
         {
@@ -33,10 +37,16 @@ namespace Wayfinder.AuthService.Api.gRPC
                     }, context.CancellationToken)
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                _logger.LogError(ex.Message);
+                return new RegisterUserResponse
+                {
+                    Error = new Common.Error
+                    {
+                        ErrorMessage = ex.Message,
+                    }
+                };
             }
         }
         public override async Task<LoginUserResponse> LoginUser(LoginUserRequest request, ServerCallContext context)
@@ -63,10 +73,16 @@ namespace Wayfinder.AuthService.Api.gRPC
                     }
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                _logger.LogError(ex.Message);
+                return new LoginUserResponse
+                {
+                    Error = new Common.Error
+                    {
+                        ErrorMessage = ex.Message,
+                    }
+                };
             }
         }
         public override async Task<UpdatePasswordResponse> UpdatePassword(UpdatePasswordRequest request, ServerCallContext context)
@@ -83,9 +99,16 @@ namespace Wayfinder.AuthService.Api.gRPC
                     }, context.CancellationToken)
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                _logger.LogError(ex.Message);
+                return new UpdatePasswordResponse
+                {
+                    Error = new Common.Error
+                    {
+                        ErrorMessage = ex.Message,
+                    }
+                };
             }
         }
         public override Task<ValidateTokenResponse> ValidateToken(ValidateTokenRequest request, ServerCallContext context)
@@ -97,9 +120,16 @@ namespace Wayfinder.AuthService.Api.gRPC
                     IsValid = _authService.ValidateToken(request.AccessToken)
                 });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                _logger.LogError(ex.Message);
+                return Task.FromResult(new ValidateTokenResponse
+                {
+                    Error = new Common.Error
+                    {
+                        ErrorMessage = ex.Message,
+                    }
+                });
             }
         }
         public override async Task<RefreshTokenResponse> RefreshToken(RefreshTokenRequest request, ServerCallContext context)
@@ -117,9 +147,16 @@ namespace Wayfinder.AuthService.Api.gRPC
                     }
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                _logger.LogError(ex.Message);
+                return new RefreshTokenResponse
+                {
+                    Error = new Common.Error
+                    {
+                        ErrorMessage = ex.Message,
+                    }
+                };
             }
         }
         public override async Task<RevokeTokenResponse> RevokeToken(RevokeTokenRequest request, ServerCallContext context)
@@ -131,9 +168,16 @@ namespace Wayfinder.AuthService.Api.gRPC
                     IsRevoked = await _authService.RevokeTokenAsync(request.RefreshToken, context.CancellationToken)
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                _logger.LogError(ex.Message);
+                return new RevokeTokenResponse
+                {
+                    Error = new Common.Error
+                    {
+                        ErrorMessage = ex.Message,
+                    }
+                };
             }
         }
         public override async Task<RevokeAllTokenForUserResponse> RevokeAllTokenForUser(RevokeAllTokenForUserRequest request, ServerCallContext context)
@@ -146,23 +190,43 @@ namespace Wayfinder.AuthService.Api.gRPC
                         Guid.Parse(request.UserId), context.CancellationToken)
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                _logger.LogError(ex.Message);
+                return new RevokeAllTokenForUserResponse
+                {
+                    Error = new Common.Error
+                    {
+                        ErrorMessage = ex.Message,
+                    }
+                };
             }
         }
         public override Task<ValidatePasswordStrengthResponse> ValidatePasswordStrength(ValidatePasswordStrengthRequest request, ServerCallContext context)
         {
             try
             {
+                var result = _authService.ValidatePasswordStrength(request.RawPassword);
+                var response = new ValidatePasswordStrengthResponse
+                {
+                    PasswordValidation = new PasswordValidation
+                    {
+                        IsStrong = result.IsStrong,
+                    }
+                };
+                response.PasswordValidation.Issue.AddRange(result.Issues);
+                return Task.FromResult(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
                 return Task.FromResult(new ValidatePasswordStrengthResponse
                 {
-                    IsStrong = _authService.ValidatePasswordStrength(request.RawPassword)
+                    Error = new Common.Error
+                    {
+                        ErrorMessage = ex.Message,
+                    }
                 });
-            }
-            catch (Exception)
-            {
-                throw;
             }
         } 
     }

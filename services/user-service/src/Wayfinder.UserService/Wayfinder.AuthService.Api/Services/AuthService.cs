@@ -1,8 +1,6 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using System.Data.SqlTypes;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Security.Cryptography;
 using System.Text;
 using Wayfinder.AuthService.Api.Constants;
@@ -11,7 +9,6 @@ using Wayfinder.AuthService.Api.Services.RequestDto;
 using Wayfinder.AuthService.Api.Services.ResponseDto;
 using Wayfinder.DataLayer.Entity;
 using Wayfinder.DataLayer.Repository.Interface;
-using static Grpc.Core.Metadata;
 
 namespace Wayfinder.AuthService.Api.Services
 {
@@ -24,7 +21,7 @@ namespace Wayfinder.AuthService.Api.Services
         private readonly IConfiguration _configuration;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
 
-        public AuthService(IAuthUserRepository authUserRepository, 
+        public AuthService(IAuthUserRepository authUserRepository,
             IConfiguration configuration,
             IRefreshTokenRepository refreshTokenRepository)
         {
@@ -51,8 +48,8 @@ namespace Wayfinder.AuthService.Api.Services
                     throw new ArgumentException("Current password is incorrect.");
                 }
                 // 2. Validate new password strength
-                var isStrong = ValidatePasswordStrength(request.NewPassword);
-                if (!isStrong)
+                var result = ValidatePasswordStrength(request.NewPassword);
+                if (!result.IsStrong)
                 {
                     throw new ArgumentException("New password does not meet strength requirements.");
                 }
@@ -137,7 +134,7 @@ namespace Wayfinder.AuthService.Api.Services
                 {
                     throw new ArgumentException("UserId must be a valid non-empty GUID.", nameof(userId));
                 }
-                var revokedCount =  await _refreshTokenRepository.RevokeAllTokensForUserAsync(userId, cancellationToken);
+                var revokedCount = await _refreshTokenRepository.RevokeAllTokensForUserAsync(userId, cancellationToken);
                 if (revokedCount == 0)
                 {
                     throw new Exception("No tokens were revoked. User may not have any active sessions.");
@@ -162,8 +159,8 @@ namespace Wayfinder.AuthService.Api.Services
                     throw new ArgumentException("Refresh token must be provided.", nameof(refreshToken));
                 }
                 var refreshTokenEntity = await _refreshTokenRepository.GetByTokenAsync(refreshToken, cancellationToken);
-                if (refreshTokenEntity is null || 
-                    refreshTokenEntity.ExpiresAt <= DateTime.UtcNow || 
+                if (refreshTokenEntity is null ||
+                    refreshTokenEntity.ExpiresAt <= DateTime.UtcNow ||
                     refreshTokenEntity.IsRevoked)
                 {
                     throw new ArgumentException("Invalid or expired refresh token.");
@@ -235,7 +232,7 @@ namespace Wayfinder.AuthService.Api.Services
                     LastLoginAt = null,
                     MustChangePassword = false,
                     // Roles can be set based on application logic, e.g., default to "User"
-                    Roles = request.Roles 
+                    Roles = request.Roles
                 };
                 // Using PBKDF2 for hashing
                 var saltBytes = RandomNumberGenerator.GetBytes(KEY_SIZE);
@@ -251,26 +248,45 @@ namespace Wayfinder.AuthService.Api.Services
         }
 
         /// <inheritdoc/>
-        public bool ValidatePasswordStrength(string password)
+        public PasswordValidationResult ValidatePasswordStrength(string password)
         {
             try
             {
+                var result = new PasswordValidationResult()
+                {
+                    IsStrong = true
+                };
                 // Check for minimum length
                 if (string.IsNullOrWhiteSpace(password) || password.Length < MIN_PASSWORD_LENGTH)
-                    return false;
+                {
+                    result.Issues.Add(string.Format(PasswordValidationMessage.TOO_SHORT, MIN_PASSWORD_LENGTH));
+                    result.IsStrong = false;
+                }
                 // Check for at least one uppercase letter
                 if (!password.Any(char.IsUpper))
-                    return false;
+                {
+                    result.Issues.Add(PasswordValidationMessage.NO_UPPERCASE);
+                    result.IsStrong = false;
+                }
                 // Check for at least one lowercase letter
                 if (!password.Any(char.IsLower))
-                    return false;
+                {
+                    result.Issues.Add(PasswordValidationMessage.NO_LOWERCASE);
+                    result.IsStrong = false;
+                }
                 // Check for at least one digit
                 if (!password.Any(char.IsDigit))
-                    return false;
+                {
+                    result.Issues.Add(PasswordValidationMessage.NO_DIGIT);
+                    result.IsStrong = false;
+                }
                 // Check for at least one special character
                 if (!password.Any(ch => !char.IsLetterOrDigit(ch)))
-                    return false;
-                return true;
+                {
+                    result.Issues.Add(PasswordValidationMessage.NO_SPECIAL_CHAR);
+                    result.IsStrong = false;
+                }
+                return result;
             }
             catch (Exception)
             {
@@ -286,10 +302,10 @@ namespace Wayfinder.AuthService.Api.Services
             {
                 // Validate the JWT token
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.UTF8.GetBytes(_configuration["JWT:Secret"] ?? 
+                var key = Encoding.UTF8.GetBytes(_configuration["JWT:Secret"] ??
                     throw new ArgumentNullException("JWT:Secret configuration value is missing."));
                 var validationParameters = new TokenValidationParameters
-                    {
+                {
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,
@@ -323,7 +339,7 @@ namespace Wayfinder.AuthService.Api.Services
             var tokenHandler = new JwtSecurityTokenHandler();
             // Create a symmetric security key using the secret key from the configuration
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                _configuration["JWT:Secret"] ?? 
+                _configuration["JWT:Secret"] ??
                 throw new ArgumentNullException("JWT:Secret configuration value is missing.")));
 
             var tokenDescriptor = new SecurityTokenDescriptor

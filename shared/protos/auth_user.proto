@@ -3,6 +3,7 @@ syntax = "proto3";
 package authuser.v1;
 
 import "google/protobuf/timestamp.proto";
+import "common.proto";
 
 /// Auth User Service - gRPC API
 
@@ -19,6 +20,11 @@ message Token {
   string access_token = 1;
   string refresh_token = 2;
   google.protobuf.Timestamp expires_at = 3;
+}
+
+message PasswordValidation {
+  bool is_strong = 1;
+  repeated string issue = 2;
 }
 
 // -----------------------------
@@ -64,35 +70,59 @@ message UpdatePasswordRequest {
 // -----------------------------
 
 message RegisterUserResponse {
-  bool is_registered = 1;
+  oneof result {
+    bool is_registered = 1;
+    common.Error error = 2;
+  }
 }
 
 message LoginUserResponse {
-  Token token = 1;
+  oneof result {
+    Token token = 1; // Success
+    common.Error error = 2; // Failure
+  }
 }
 
 message RefreshTokenResponse {
-  Token token = 1;
+  oneof result {
+    Token token = 1;
+    common.Error error = 2;
+  }
 }
 
 message ValidatePasswordStrengthResponse {
-  bool is_strong = 1;
+  oneof result {
+    PasswordValidation password_validation = 1;
+    common.Error error = 2;
+  }
 }
 
 message RevokeAllTokenForUserResponse {  
-  int32 revoked_count = 1;
+  oneof result {
+    int32 revoked_count = 1;
+    common.Error error = 2;
+  }
 }
 
 message ValidateTokenResponse {
-  bool is_valid = 2;
+  oneof result {
+    bool is_valid = 1;
+    common.Error error = 2;
+  }
 }
 
 message RevokeTokenResponse {
-  bool is_revoked = 1;
+  oneof result {
+    bool is_revoked = 1;
+    common.Error error = 2;
+  }
 }
 
 message UpdatePasswordResponse {
-  bool is_updated = 1;
+  oneof result {
+    bool is_updated = 1;
+    common.Error error = 2;
+  }
 }
 
 // -----------------------------
