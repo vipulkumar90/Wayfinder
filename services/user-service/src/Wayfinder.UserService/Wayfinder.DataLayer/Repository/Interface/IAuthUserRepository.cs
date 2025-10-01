@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using System.Text;
 using Wayfinder.DataLayer.Entity;
 
-namespace Wayfinder.DataLayer.Repository
+namespace Wayfinder.DataLayer.Repository.Interface
 {
     public interface IAuthUserRepository
     {
         #region Create
-        Task<AuthUserEntity> CreateAsync(AuthUserEntity entity, string rawPassword, CancellationToken cancellationToken = default);
+        Task<bool> AddAsync(AuthUserEntity entity, CancellationToken cancellationToken = default);
         #endregion
 
         #region Read
         Task<AuthUserEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<AuthUserEntity?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
         #endregion
 
         #region Update
@@ -24,7 +25,7 @@ namespace Wayfinder.DataLayer.Repository
         #endregion
 
         #region Password Management
-        Task<bool> UpdatePasswordAsync(Guid userId, string newRawPassword, CancellationToken cancellationToken = default);
+        Task<bool> UpdatePasswordAsync(AuthUserEntity entity, CancellationToken cancellationToken = default);
         #endregion
 
         #region Login Tracking
@@ -32,5 +33,7 @@ namespace Wayfinder.DataLayer.Repository
         Task<bool> IncrementFailedLoginAttemptsAsync(Guid userId, CancellationToken cancellationToken = default);
         Task<bool> ResetFailedLoginAttemptsAsync(Guid userId, CancellationToken cancellationToken = default);
         #endregion
+
+
     }
 }

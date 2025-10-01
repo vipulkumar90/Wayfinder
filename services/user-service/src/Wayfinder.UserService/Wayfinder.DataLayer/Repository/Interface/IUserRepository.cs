@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using Wayfinder.DataLayer.Entity;
 
-namespace Wayfinder.DataLayer.Repository
+namespace Wayfinder.DataLayer.Repository.Interface
 {
     /// <summary>
     /// Defines a contract for managing user entities in a data store, including retrieval, creation, update, and

@@ -5,54 +5,31 @@ using System.Security.Cryptography;
 using Wayfinder.DataLayer.Entity;
 using Wayfinder.DataLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
+using Wayfinder.DataLayer.Repository.Interface;
 
 namespace Wayfinder.DataLayer.Repository
 {
     public class AuthUserRepository : IAuthUserRepository
     {
-        private const int KEY_SIZE = 32; // 256 bits
         private readonly AuthUserContext _authUserContext;
 
         public AuthUserRepository(AuthUserContext authUserContext)
         {
             _authUserContext = authUserContext;
         }
-        public async Task<AuthUserEntity> CreateAsync(AuthUserEntity entity, String rawPassword, CancellationToken cancellationToken = default)
+        public async Task<bool> AddAsync(AuthUserEntity entity, CancellationToken cancellationToken = default)
         {
             try
             {
-                if (entity is null)
-                {
-                    throw new ArgumentNullException(nameof(entity));
-                }
-
-                // Ensure password hash and salt are generated
-                if (string.IsNullOrWhiteSpace(entity.PasswordHash) || string.IsNullOrWhiteSpace(entity.PasswordSalt))
-                {
-                    // Using PBKDF2 for hashing
-                    var saltBytes = RandomNumberGenerator.GetBytes(KEY_SIZE);
-                    entity.PasswordSalt = Convert.ToBase64String(saltBytes);
-                    entity.PasswordHash = Convert.ToBase64String(GeneratePasswordHash(rawPassword, saltBytes));
-                }
-
-                // Ensure Id is set
-                if (entity.Id == Guid.Empty)
-                {
-                    throw new ArgumentException("Entity must have a valid Id.", nameof(entity));
-                }
-
-                // Check for existing user with same Id
-                var exists = await _authUserContext.AuthUsers.AnyAsync(u => u.Id == entity.Id, cancellationToken);
+                // Check for existing user with same UserId
+                var exists = await _authUserContext.AuthUsers.AnyAsync(u => u.UserId == entity.UserId, cancellationToken);
                 if (exists)
                 {
-                    throw new InvalidOperationException($"An AuthUser with Id {entity.Id} already exists.");
+                    throw new InvalidOperationException($"An AuthUser with UserId {entity.UserId} already exists.");
                 }
-
                 // Add entity to context and save
                 await _authUserContext.AuthUsers.AddAsync(entity, cancellationToken);
-                await _authUserContext.SaveChangesAsync(cancellationToken);
-
-                return entity;
+                return await _authUserContext.SaveChangesAsync(cancellationToken) > 0;
             }
             catch (Exception)
             {
@@ -80,15 +57,26 @@ namespace Wayfinder.DataLayer.Repository
             }
         }
 
-        public Task<AuthUserEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<AuthUserEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             try
             {
-                return _authUserContext.AuthUsers.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+                return await _authUserContext.AuthUsers.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
             }
             catch (Exception)
             {
 
+                throw;
+            }
+        }
+        public async Task<AuthUserEntity?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                return await _authUserContext.AuthUsers.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
+            }
+            catch (Exception)
+            {
                 throw;
             }
         }
@@ -170,18 +158,26 @@ namespace Wayfinder.DataLayer.Repository
             }
         }
 
-        public async Task<bool> UpdatePasswordAsync(Guid userId, string newRawPassword, CancellationToken cancellationToken = default)
+        public async Task<bool> UpdatePasswordAsync(AuthUserEntity entity, CancellationToken cancellationToken = default)
         {
             try
             {
-                var user = await _authUserContext.AuthUsers.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-                if (user is null)
+                if (entity is null)
                 {
-                    throw new KeyNotFoundException($"AuthUser with Id {userId} not found.");
+                    throw new ArgumentNullException("AuthUserEntity cannot be null.", nameof(entity));
                 }
-                var saltBytes = RandomNumberGenerator.GetBytes(KEY_SIZE);
-                user.PasswordSalt = Convert.ToBase64String(saltBytes);
-                user.PasswordHash = Convert.ToBase64String(GeneratePasswordHash(newRawPassword, saltBytes));
+                var existingUser = await _authUserContext.AuthUsers.FirstOrDefaultAsync(u => u.Id == entity.Id, cancellationToken);
+                if (existingUser is null)
+                {
+                    throw new KeyNotFoundException($"AuthUser with Id {entity.Id} not found.");
+                }
+                if (entity.Id != existingUser.Id)
+                {
+                    throw new ArgumentException("Entity ID does not match the existing user ID.", nameof(entity));
+                }
+                existingUser.PasswordHash = entity.PasswordHash;
+                existingUser.PasswordSalt = entity.PasswordSalt;
+                existingUser.MustChangePassword = entity.MustChangePassword;
                 return await _authUserContext.SaveChangesAsync(cancellationToken) > 0;
             }
             catch (Exception)
@@ -190,16 +186,6 @@ namespace Wayfinder.DataLayer.Repository
                 throw;
             }
         }
-        #region Private Methods
-        private byte[] GeneratePasswordHash(string rawPassword, byte[] saltBytes)
-        {
-            return Rfc2898DeriveBytes.Pbkdf2(
-                Encoding.UTF8.GetBytes(rawPassword),
-                saltBytes,
-                100_000,
-                HashAlgorithmName.SHA512,
-                KEY_SIZE);
-        }
-        #endregion
+        
     }
 }

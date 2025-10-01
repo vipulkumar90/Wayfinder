@@ -23,6 +23,14 @@ namespace Wayfinder.DataLayer.Entity
         [Key]
         public Guid Id { get; set; }
         /// <summary>
+        /// Gets or sets the foreign key referencing the associated authentication user entity.
+        /// </summary>
+        public AuthUserEntity AuthUser { get; set; } = default!;
+        /// <summary>
+        /// Gets or sets the foreign key referencing the associated refresh token entity.
+        /// </summary>
+        public IEnumerable<RefreshTokenEntity> RefreshToken { get; set; } = default!;
+        /// <summary>
         /// Gets or sets the username associated with the user account.
         /// </summary>
         /// <remarks>The username must be provided and cannot exceed 100 characters in length.</remarks>

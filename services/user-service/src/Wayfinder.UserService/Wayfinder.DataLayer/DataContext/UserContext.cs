@@ -105,7 +105,9 @@ namespace Wayfinder.DataLayer.DataContext
                     PhoneNumber = "1000000001",
                     CreatedAt = seedDate,
                     UpdatedAt = seedDate,
-                    IsActive = true
+                    IsActive = true,
+                    RefreshToken = null!,
+                    AuthUser = null!
                 },
                 new UserEntity
                 {
@@ -117,7 +119,9 @@ namespace Wayfinder.DataLayer.DataContext
                     PhoneNumber = "1000000002",
                     CreatedAt = seedDate,
                     UpdatedAt = seedDate,
-                    IsActive = true
+                    IsActive = true,
+                    RefreshToken = null!,
+                    AuthUser = null!
                 },
                 new UserEntity
                 {
@@ -129,7 +133,9 @@ namespace Wayfinder.DataLayer.DataContext
                     PhoneNumber = "1000000003",
                     CreatedAt = seedDate,
                     UpdatedAt = seedDate,
-                    IsActive = false
+                    IsActive = false,
+                    RefreshToken = null!,
+                    AuthUser = null!
                 },
                 new UserEntity
                 {
@@ -141,7 +147,9 @@ namespace Wayfinder.DataLayer.DataContext
                     PhoneNumber = "1000000004",
                     CreatedAt = seedDate,
                     UpdatedAt = seedDate,
-                    IsActive = true
+                    IsActive = true,
+                    RefreshToken = null!,
+                    AuthUser = null!
                 },
                 new UserEntity
                 {
@@ -153,7 +161,9 @@ namespace Wayfinder.DataLayer.DataContext
                     PhoneNumber = "1000000005",
                     CreatedAt = seedDate,
                     UpdatedAt = seedDate,
-                    IsActive = false
+                    IsActive = false,
+                    RefreshToken = null!,
+                    AuthUser = null!
                 }
             );
         }

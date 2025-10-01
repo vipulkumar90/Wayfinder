@@ -11,7 +11,14 @@ namespace Wayfinder.DataLayer.Entity
         /// </summary>
         [Key]
         public Guid Id { get; set; }
+        /// <summary>
+        /// Gets or sets the foreign key referencing the associated user entity.
+        /// </summary>
         public Guid UserId { get; set; }
+        /// <summary>
+        /// Gets or sets the foreign key referencing the associated user entity.
+        /// </summary>
+        public UserEntity User { get; set; } = default!;
         /// <summary>
         /// Gets or sets the hashed representation of the user's password.
         /// </summary>
@@ -30,7 +37,7 @@ namespace Wayfinder.DataLayer.Entity
         /// <summary>
         /// Gets or sets the timestamp of the user's last successful login.
         /// </summary>
-        public DateTime LastLoginAt { get; set; }
+        public DateTime? LastLoginAt { get; set; }
         /// <summary>
         /// Gets or sets a value indicating whether the user is required to change their password upon next login.
         /// </summary>
@@ -43,5 +50,9 @@ namespace Wayfinder.DataLayer.Entity
         /// Gets or sets the timestamp until which the user account is locked out.
         /// </summary>
         public DateTime? LockoutEnd { get; set; }
+        /// <summary>
+        /// Gets or sets the collection of roles assigned to the user.
+        /// </summary>
+        public IEnumerable<string> Roles { get; set; } = default!;
     }
 }
