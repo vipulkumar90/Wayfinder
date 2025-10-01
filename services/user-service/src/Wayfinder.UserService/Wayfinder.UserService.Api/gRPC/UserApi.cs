@@ -2,7 +2,7 @@
 using Grpc.Core;
 using User.V1;
 using Wayfinder.DataLayer.Entity;
-using Wayfinder.DataLayer.Repository;
+using Wayfinder.DataLayer.Repository.Interface;
 
 namespace Wayfinder.UserService.Api.gRPC
 {

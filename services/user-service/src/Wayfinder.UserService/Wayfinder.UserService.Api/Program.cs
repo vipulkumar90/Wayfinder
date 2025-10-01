@@ -6,6 +6,7 @@ using User.V1;
 using Wayfinder.DataLayer.Repository;
 using Microsoft.OpenApi.Models;
 using Wayfinder.UserService.Api.MapperProfile;
+using Wayfinder.DataLayer.Repository.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 

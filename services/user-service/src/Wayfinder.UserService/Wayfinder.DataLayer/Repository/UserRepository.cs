@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 using Wayfinder.DataLayer.DataContext;
 using Wayfinder.DataLayer.Entity;
+using Wayfinder.DataLayer.Repository.Interface;
 
 namespace Wayfinder.DataLayer.Repository
 {
