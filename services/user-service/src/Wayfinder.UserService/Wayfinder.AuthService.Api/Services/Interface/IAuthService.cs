@@ -1,5 +1,5 @@
-﻿using Wayfinder.AuthService.Api.Service.RequestDto;
-using Wayfinder.AuthService.Api.Service.ResponseDto;
+﻿using Wayfinder.AuthService.Api.Services.RequestDto;
+using Wayfinder.AuthService.Api.Services.ResponseDto;
 
 namespace Wayfinder.AuthService.Api.Services.Interface
 {
@@ -10,14 +10,14 @@ namespace Wayfinder.AuthService.Api.Services.Interface
         /// </summary>
         /// <param name="password"></param>
         /// <returns>Returns true if the password is strong</returns>
-        Task<bool> ValidatePasswordStrength(string password);
+        bool ValidatePasswordStrength(string password);
         /// <summary>
         /// Generates a secure hash and salt for the provided raw password.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>Returns TokenResult containing RefreshToken, AccessToken, ExpiresAt</returns>
-        Task<TokenResult> SignUpAsync(AuthRequest request, CancellationToken cancellationToken = default);
+        Task<bool> RegisterAsync(AuthRequest request, CancellationToken cancellationToken = default);
         /// <summary>
         /// Handles user authentication by validating credentials and issuing tokens upon successful login.
         /// </summary>
@@ -40,7 +40,7 @@ namespace Wayfinder.AuthService.Api.Services.Interface
         /// <param name="token"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>Returns true if the token is valid</returns>
-        Task<bool> ValidateTokenAsync(string token, CancellationToken cancellationToken = default);
+        bool ValidateToken(string accessToken);
         /// <summary>
         /// Refreshes the access token using a valid refresh token, issuing a new access token and 
         /// potentially a new refresh token.
@@ -57,11 +57,12 @@ namespace Wayfinder.AuthService.Api.Services.Interface
         /// <returns>Returns true if the token was successfully revoked</returns>
         Task<bool> RevokeTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
         /// <summary>
-        /// Logs out the user by invalidating the provided access token and associated session data.
+        /// Revokes all refresh tokens associated with the specified user, 
+        /// effectively logging them out from all sessions.
         /// </summary>
-        /// <param name="accessToken"></param>
+        /// <param name="userId"></param>
         /// <param name="cancellationToken"></param>
-        /// <returns>Returns true if the user was successfully logged</returns>
-        Task<bool> LogOutAsync(string accessToken, CancellationToken cancellationToken = default);
+        /// <returns>Returns true if all tokens were successfully revoked</returns>
+        Task<int> LogOutFromEverywhereAsync(Guid userId, CancellationToken cancellationToken = default);
     }
 }

@@ -16,9 +16,14 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Grpc.JsonTranscoding" Version="9.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Grpc.Swagger" Version="0.9.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.9">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -27,6 +32,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Wayfinder.DataLayer\Wayfinder.DataLayer.csproj" />
+	  <Protobuf Include="..\..\..\..\..\shared\protos\auth_user.proto" GrpcServices="Server" Link="Protos\auth_user.proto" />
   </ItemGroup>
 
 </Project>

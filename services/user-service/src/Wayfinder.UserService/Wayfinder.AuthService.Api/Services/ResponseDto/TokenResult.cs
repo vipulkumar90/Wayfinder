@@ -1,4 +1,4 @@
-﻿namespace Wayfinder.AuthService.Api.Service.ResponseDto
+﻿namespace Wayfinder.AuthService.Api.Services.ResponseDto
 {
     public record TokenResult
     {

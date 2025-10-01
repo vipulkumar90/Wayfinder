@@ -1,4 +1,4 @@
-﻿namespace Wayfinder.AuthService.Api.Service.RequestDto
+﻿namespace Wayfinder.AuthService.Api.Services.RequestDto
 {
     public record ChangePasswordRequest
     {
