@@ -12,7 +12,10 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Wayfinder.AuthService.Api/Wayfinder.AuthService.Api.csproj", "Wayfinder.AuthService.Api/"]
+COPY ["services/user-service/src/Wayfinder.UserService/Wayfinder.AuthService.Api/Wayfinder.AuthService.Api.csproj", "Wayfinder.AuthService.Api/"]
+COPY ["services/user-service/src/Wayfinder.UserService/Wayfinder.DataLayer/Wayfinder.DataLayer.csproj", "Wayfinder.DataLayer/"]
+COPY ["shared/protos/common.proto", "Wayfinder.AuthService.Api/shared/protos/"]
+COPY ["shared/protos/auth_user.proto", "Wayfinder.AuthService.Api/shared/protos/"]
 RUN dotnet restore "./Wayfinder.AuthService.Api/Wayfinder.AuthService.Api.csproj"
 COPY . .
 WORKDIR "/src/Wayfinder.AuthService.Api"
