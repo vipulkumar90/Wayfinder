@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Wayfinder.AuthService.Api/Wayfinder.AuthService.Api.csproj" Id="4d6cb10e-181f-4dce-bd22-a89f9f92a2ef" />
+  <Project Path="Wayfinder.DataLayer/Wayfinder.DataLayer.csproj" Id="6d035757-aff2-4599-8a56-c841d5b02174" />
+  <Project Path="Wayfinder.UserService.Api/Wayfinder.UserService.Api.csproj" Id="811ba9c1-c4f0-4d81-aeca-0d0169fae390" />
+</Solution>

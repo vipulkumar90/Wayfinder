@@ -15,6 +15,51 @@ services:
     networks:
       - node-network
 
+  user-service:
+    build:
+      context: ..
+      dockerfile: ./services/user-service/src/Wayfinder.UserService/Wayfinder.UserService.Api/Dockerfile
+    container_name: user_service_api
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=localhost,1433;Database=TripPlannerDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;
+      - ASPNETCORE_URLS=http://+:8080;https://+:8081
+    depends_on:
+      - sqlserver
+    restart: unless-stopped
+    ports:
+      - "5001:8080"   # localhost:5001 → container:8080 (HTTP)
+      - "50011:8081"  # optional, for HTTPS
+
+  auth-service:
+    build:
+      context: ..
+      dockerfile: ./services/user-service/src/Wayfinder.UserService/Wayfinder.AuthService.Api/Dockerfile
+    container_name: auth_service_api
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=localhost,1433;Database=TripPlannerDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;
+      - ASPNETCORE_URLS=http://+:8080;https://+:8081
+    depends_on:
+      - sqlserver
+    restart: unless-stopped
+    ports:
+      - "5002:8080"   # localhost:5001 → container:8080 (HTTP)
+      - "50022:8081"  # optional, for HTTPS
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: unless-stopped
+    container_name: sqlserverdb 
+    environment:
+      - "ACCEPT_EULA=Y" 
+      - "MSSQL_SA_PASSWORD=Password@12345"
+    ports:
+      - "1433:1433"
+    networks:
+      - app-network
+    volumes:
+      - sql_data:/var/opt/mssql
+
+
   postgredb:
     image: postgres
     restart: always
@@ -38,7 +83,11 @@ services:
 volumes:
   dbdata:
     driver: local
+  sql_data:
 
 networks:
   node-network:
+    driver: bridge
+
+  app-network:
     driver: bridge

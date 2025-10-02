@@ -1,0 +1,141 @@
+syntax = "proto3";
+
+package authuser.v1;
+
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+
+/// Auth User Service - gRPC API
+
+// -----------------------------
+// Domain messages
+// -----------------------------
+
+message Credential {
+  string user_id = 1;
+  string raw_password = 2;
+}
+
+message Token {
+  string access_token = 1;
+  string refresh_token = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+message PasswordValidation {
+  bool is_strong = 1;
+  repeated string issue = 2;
+}
+
+// -----------------------------
+// Request
+// -----------------------------
+
+message RegisterUserRequest {
+  Credential credential = 1;
+}
+
+message LoginUserRequest {
+  Credential credential = 1;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RevokeTokenRequest {
+  string refresh_token = 1;
+}
+
+message RevokeAllTokenForUserRequest {
+  string user_id = 1;
+}
+
+message ValidatePasswordStrengthRequest {
+  string raw_password = 1;
+}
+
+message ValidateTokenRequest {
+  string access_token = 1;
+}
+
+message UpdatePasswordRequest {
+  string user_id = 1;
+  string new_raw_password = 2;
+  string current_raw_password = 3;
+}
+
+// -----------------------------
+// Response
+// -----------------------------
+
+message RegisterUserResponse {
+  oneof result {
+    bool is_registered = 1;
+    common.Error error = 2;
+  }
+}
+
+message LoginUserResponse {
+  oneof result {
+    Token token = 1; // Success
+    common.Error error = 2; // Failure
+  }
+}
+
+message RefreshTokenResponse {
+  oneof result {
+    Token token = 1;
+    common.Error error = 2;
+  }
+}
+
+message ValidatePasswordStrengthResponse {
+  oneof result {
+    PasswordValidation password_validation = 1;
+    common.Error error = 2;
+  }
+}
+
+message RevokeAllTokenForUserResponse {  
+  oneof result {
+    int32 revoked_count = 1;
+    common.Error error = 2;
+  }
+}
+
+message ValidateTokenResponse {
+  oneof result {
+    bool is_valid = 1;
+    common.Error error = 2;
+  }
+}
+
+message RevokeTokenResponse {
+  oneof result {
+    bool is_revoked = 1;
+    common.Error error = 2;
+  }
+}
+
+message UpdatePasswordResponse {
+  oneof result {
+    bool is_updated = 1;
+    common.Error error = 2;
+  }
+}
+
+// -----------------------------
+// Service
+// -----------------------------
+
+service AuthUserService {
+  rpc RegisterUser (RegisterUserRequest) returns (RegisterUserResponse);
+  rpc LoginUser (LoginUserRequest) returns (LoginUserResponse);
+  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc RevokeToken (RevokeTokenRequest) returns (RevokeTokenResponse);
+  rpc RevokeAllTokenForUser (RevokeAllTokenForUserRequest) returns (RevokeAllTokenForUserResponse);
+  rpc ValidatePasswordStrength (ValidatePasswordStrengthRequest) returns (ValidatePasswordStrengthResponse);
+  rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
+  rpc UpdatePassword (UpdatePasswordRequest) returns (UpdatePasswordResponse);
+}
