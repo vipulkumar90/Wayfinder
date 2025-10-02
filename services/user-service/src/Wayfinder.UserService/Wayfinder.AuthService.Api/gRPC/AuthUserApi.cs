@@ -1,7 +1,5 @@
 ﻿using Authuser.V1;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Google.Type;
 using Grpc.Core;
 using Wayfinder.AuthService.Api.Constants;
 using Wayfinder.AuthService.Api.Services.Interface;
@@ -9,7 +7,7 @@ using Wayfinder.AuthService.Api.Services.RequestDto;
 
 namespace Wayfinder.AuthService.Api.gRPC
 {
-    public class AuthUserApi : Authuser.V1.AuthUserService.AuthUserServiceBase
+    public class AuthUserApi : AuthUserService.AuthUserServiceBase
     {
         private readonly IAuthService _authService;
         private readonly ILogger<AuthUserApi> _logger;

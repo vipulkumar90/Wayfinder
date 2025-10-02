@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Google.Protobuf.WellKnownTypes;
 using Wayfinder.DataLayer.Entity;
 
 namespace Wayfinder.UserService.Api.MapperProfile
