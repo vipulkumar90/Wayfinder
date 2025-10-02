@@ -23,14 +23,12 @@ namespace Wayfinder.DataLayer.Repository
             _context = context;
         }
         /// <inheritdoc/>
-        public async Task<UserEntity> AddUserAsync(UserEntity user)
+        public async Task<UserEntity> AddUserAsync(UserEntity user, CancellationToken cancellationToken = default)
         {
             try
             {
-                // Making the user active on creation
-                user.IsActive = true; 
-                _context.Add(user);
-                await _context.SaveChangesAsync();
+                await _context.AddAsync(user, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
                 return user;
             }
             catch (Exception)
@@ -41,7 +39,7 @@ namespace Wayfinder.DataLayer.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<bool> DeleteUserAsync(Guid id)
+        public async Task<bool> SoftDeleteUserAsync(Guid id, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -50,7 +48,7 @@ namespace Wayfinder.DataLayer.Repository
                 if (user is not null && user.IsActive)
                 {
                     user.IsActive = false;
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(cancellationToken);
                     return true;
                 }
                 return false;
@@ -63,11 +61,11 @@ namespace Wayfinder.DataLayer.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<UserEntity>> GetAllUsersAsync()
+        public async Task<IEnumerable<UserEntity>> GetAllUsersAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                return await _context.Users.ToListAsync();
+                return await _context.Users.ToListAsync(cancellationToken);
             }
             catch (Exception)
             {
@@ -77,69 +75,73 @@ namespace Wayfinder.DataLayer.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<UserEntity?> GetUserAsync(Expression<Func<UserEntity, bool>> predicate)
+        public async Task<UserEntity?> GetUserAsync(Expression<Func<UserEntity, bool>> predicate, CancellationToken cancellationToken = default)
         {
             try
             {
-                var user = await _context.Users.FirstOrDefaultAsync(predicate);
-                if (user is not null && user.IsActive)
+                return await _context.Users.FirstOrDefaultAsync(predicate, cancellationToken);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<UserEntity?> UpdateUserAsync(UserEntity user, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Update user
+                _context.Update(user);
+                await _context.SaveChangesAsync(cancellationToken);
+                return user;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> UserExistsAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                return await _context.Users.AnyAsync(u => u.Id == id && u.IsActive, cancellationToken);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+        /// <inheritdoc/>
+        public async Task<IEnumerable<UserEntity>> GetAllActiveUsersAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                return await _context.Users.Where(u => u.IsActive).ToListAsync(cancellationToken);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        /// <inheritdoc/>
+        public async Task<bool> HardDeleteUserAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+                if (user is not null)
                 {
-                    return user;
+                    _context.Users.Remove(user);
+                    await _context.SaveChangesAsync(cancellationToken);
+                    return true;
                 }
-                return null;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
-
-        /// <inheritdoc/>
-        public async Task<UserEntity?> UpdateUserAsync(UserEntity user)
-        {
-            try
-            {
-                // Find the user to be updated
-                var update = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
-                if (update is not null && update.IsActive)
-                {
-                    update.Username = user.Username;
-                    update.Email = user.Email;
-                    update.FirstName = user.FirstName;
-                    update.PhoneNumber = user.PhoneNumber;
-                    update.LastName = user.LastName;
-                    _context.Update(update);
-                    await _context.SaveChangesAsync();
-                    return update;
-                }
-                return null;
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-        }
-
-        /// <inheritdoc/>
-        public async Task<bool> UserExistsAsync(Guid id)
-        {
-            try
-            {
-                return await _context.Users.AnyAsync(u => u.Id == id && u.IsActive);
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-        }
-        /// <inheritdoc/>
-        public async Task<IEnumerable<UserEntity>> GetAllActiveUsersAsync()
-        {
-            try
-            {
-                return await _context.Users.Where(u => u.IsActive).ToListAsync();
+                return false;
             }
             catch (Exception)
             {

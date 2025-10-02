@@ -38,8 +38,8 @@
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
 	<ProjectReference Include="..\Wayfinder.DataLayer\Wayfinder.DataLayer.csproj" />
-	<Protobuf Include="shared\protos\auth_user.proto" GrpcServices="Server" Link="Protos\auth_user.proto" />
-	<Protobuf Include="shared\protos\common.proto" GrpcServices="Server" Link="Protos\common.proto" />
+	<Protobuf Include="auth_user.proto" GrpcServices="Server" />
+	<Protobuf Include="common.proto" GrpcServices="Server" />
   </ItemGroup>
 
 </Project>
