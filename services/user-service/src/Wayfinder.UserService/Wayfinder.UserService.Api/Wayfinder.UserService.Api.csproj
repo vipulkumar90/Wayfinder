@@ -33,11 +33,13 @@
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <ProjectReference Include="..\Wayfinder.DataLayer\Wayfinder.DataLayer.csproj" />
 	<Protobuf Include="..\..\..\..\..\shared\protos\user.proto" GrpcServices="Server" Link="Protos\user.proto" />
+	<Protobuf Include="..\..\..\..\..\shared\protos\common.proto" GrpcServices="Server" Link="Protos\common.proto" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
 	  <ProjectReference Include="..\Wayfinder.DataLayer\Wayfinder.DataLayer.csproj" />
-	  <Protobuf Include="shared\protos\user.proto" GrpcServices="Server" Link="Protos\user.proto" />
+	  <Protobuf Include="user.proto" GrpcServices="Server" />
+	  <Protobuf Include="common.proto" GrpcServices="Server" />
   </ItemGroup>
 
 </Project>

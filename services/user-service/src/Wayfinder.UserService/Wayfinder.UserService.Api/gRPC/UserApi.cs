@@ -1,37 +1,47 @@
 ﻿using AutoMapper;
 using Grpc.Core;
-using User.V1;
+using UserPb.V1;
 using Wayfinder.DataLayer.Entity;
-using Wayfinder.DataLayer.Repository.Interface;
+using Common;
+using Wayfinder.UserService.Api.Service.Interface;
 
 namespace Wayfinder.UserService.Api.gRPC
 {
-    public class UserApi : User.V1.UserService.UserServiceBase
+    public class UserApi : UserPb.V1.UserService.UserServiceBase
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IUserService _userService;
         private readonly IMapper _mapper;
+        private readonly ILogger<UserApi> _logger;
 
-        public UserApi(IUserRepository userRepository, IMapper mapper)
+        public UserApi(IUserService userService, 
+            IMapper mapper,
+            ILogger<UserApi> logger)
         {
-            _userRepository = userRepository;
+            _userService = userService;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public override async Task<CreateUserResponse> CreateUser(CreateUserRequest request, ServerCallContext context)
         {
             try
             {
-                var createdUser = await _userRepository.AddUserAsync(_mapper.Map<UserEntity>(request.User));
-                var test = _mapper.Map<User.V1.User>(createdUser);
+                var createdUser = await _userService.AddUserAsync(_mapper.Map<UserEntity>(request.User));
                 return new CreateUserResponse
                 {
-                    User = test
+                    User = _mapper.Map<User>(createdUser)
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                _logger.LogError(ex.Message);
+                return new CreateUserResponse
+                {
+                    Error = new Error
+                    {
+                        ErrorMessage = ex.Message,
+                    }
+                };
             }
         }
 
@@ -39,16 +49,25 @@ namespace Wayfinder.UserService.Api.gRPC
         {
             try
             {
-                var users = await _userRepository.GetAllUsersAsync();
+                var users = await _userService.GetAllUsersAsync(cancellationToken:context.CancellationToken);
                 return new GetAllUsersResponse
                 {
-                    Users = { _mapper.Map<IEnumerable<User.V1.User>>(users) }
+                    Users = new UserList
+                    {
+                        Users = { _mapper.Map<List<User>>(users) }
+                    }
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                _logger.LogError(ex.Message);
+                return new GetAllUsersResponse
+                {
+                    Error = new Error
+                    {
+                        ErrorMessage = ex.Message,
+                    }
+                };
             }
         }
         public override async Task<DeleteUserResponse> DeleteUser(DeleteUserRequest request, ServerCallContext context)
@@ -57,13 +76,19 @@ namespace Wayfinder.UserService.Api.gRPC
             {
                 return new DeleteUserResponse
                 {
-                    Success = await _userRepository.DeleteUserAsync(Guid.Parse(request.Id))
+                    Success = await _userService.DeleteUserAsync(Guid.Parse(request.Id), cancellationToken:context.CancellationToken)
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                _logger.LogError(ex.Message);
+                return new DeleteUserResponse
+                {
+                    Error = new Error
+                    {
+                        ErrorMessage = ex.Message,
+                    }
+                };
             }
         }
         public override async Task<GetAllUsersResponse> GetAllActiveUsers(GetAllUsersRequest request, ServerCallContext context)
@@ -72,13 +97,27 @@ namespace Wayfinder.UserService.Api.gRPC
             {
                 return new GetAllUsersResponse
                 {
-                    Users = { _mapper.Map<List<User.V1.User>>(await _userRepository.GetAllActiveUsersAsync()) }
+                    Users = new UserList
+                    {
+                        Users = 
+                        { 
+                            _mapper.Map<List<User>>(await _userService.GetAllUsersAsync(
+                                activeUsersOnly:true, 
+                                cancellationToken:context.CancellationToken)) 
+                        }
+                    }
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                _logger.LogError(ex.Message);
+                return new GetAllUsersResponse
+                {
+                    Error = new Error
+                    {
+                        ErrorMessage = ex.Message
+                    }
+                };
             }
         }
         public override async Task<GetUserResponse> GetUserByEmail(GetUserByEmailRequest request, ServerCallContext context)
@@ -87,13 +126,21 @@ namespace Wayfinder.UserService.Api.gRPC
             {
                 return new GetUserResponse
                 {
-                    User = _mapper.Map<User.V1.User>(await _userRepository.GetUserAsync(u => u.Email == request.Email))
+                    User = _mapper.Map<User>(await _userService.GetUserByEmailAsync(
+                        request.Email, 
+                        context.CancellationToken))
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                _logger.LogError(ex.Message);
+                return new GetUserResponse
+                {
+                    Error = new Error
+                    {
+                        ErrorMessage = ex.Message
+                    }
+                };
             }
         }
         public override async Task<GetUserResponse> GetUserById(GetUserByIdRequest request, ServerCallContext context)
@@ -102,13 +149,21 @@ namespace Wayfinder.UserService.Api.gRPC
             {
                 return new GetUserResponse
                 {
-                    User = _mapper.Map<User.V1.User>(await _userRepository.GetUserAsync(u => u.Id == Guid.Parse(request.Id)))
+                    User = _mapper.Map<User>(await _userService.GetUserByIdAsync(
+                        Guid.Parse(request.Id), 
+                        context.CancellationToken))
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                _logger.LogError(ex.Message);
+                return new GetUserResponse
+                {
+                    Error = new Error
+                    {
+                        ErrorMessage = ex.Message
+                    }
+                };
             }
         }
         public override async Task<GetUserResponse> GetUserByUsername(GetUserByUsernameRequest request, ServerCallContext context)
@@ -117,13 +172,21 @@ namespace Wayfinder.UserService.Api.gRPC
             {
                 return new GetUserResponse
                 {
-                    User = _mapper.Map<User.V1.User>(await _userRepository.GetUserAsync(u => u.Username == request.Username))
+                    User = _mapper.Map<User>(await _userService.GetUserByUsernameAsync(
+                        request.Username,
+                        context.CancellationToken))
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                _logger.LogError(ex.Message);
+                return new GetUserResponse
+                {
+                    Error = new Error
+                    {
+                        ErrorMessage = ex.Message
+                    }
+                };
             }
         }
         public override async Task<UpdateUserResponse> UpdateUser(UpdateUserRequest request, ServerCallContext context)
@@ -132,13 +195,21 @@ namespace Wayfinder.UserService.Api.gRPC
             {
                 return new UpdateUserResponse
                 {
-                    User = _mapper.Map<User.V1.User>(await _userRepository.UpdateUserAsync(_mapper.Map<UserEntity>(request.User)))
+                    User = _mapper.Map<User>(await _userService.UpdateUserAsync(
+                        _mapper.Map<UserEntity>(request.User),
+                        context.CancellationToken))
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                _logger.LogError(ex.Message);
+                return new UpdateUserResponse
+                {
+                    Error = new Error
+                    {
+                        ErrorMessage = ex.Message
+                    }
+                };
             }
         }
     }
