@@ -30,14 +30,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+  <ItemGroup>
     <ProjectReference Include="..\Wayfinder.DataLayer\Wayfinder.DataLayer.csproj" />
-	<Protobuf Include="..\..\..\..\..\shared\protos\user.proto" GrpcServices="Server" Link="Protos\user.proto" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
-	  <ProjectReference Include="..\Wayfinder.DataLayer\Wayfinder.DataLayer.csproj" />
-	  <Protobuf Include="shared\protos\user.proto" GrpcServices="Server" Link="Protos\user.proto" />
+    <Protobuf Include="$(MSBuildThisFileDirectory)..\..\..\..\..\shared\protos\user.proto" GrpcServices="Server" Link="Protos\user.proto" />
   </ItemGroup>
 
 </Project>
