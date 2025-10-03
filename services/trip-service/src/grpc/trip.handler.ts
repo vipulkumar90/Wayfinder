@@ -8,8 +8,8 @@ import type {
   DeleteTripRequest,
   ListTripsRequest,
   ListTripsResponse,
-} from '@/generated/trip.js';
-import { Empty } from '@/generated/google/protobuf/empty.js';
+} from '@/grpc/__generated__/trip.js';
+import { Empty } from '@/grpc/__generated__/google/protobuf/empty.js';
 import logger from '@/lib/logger.js';
 import { validateInput } from '@/utils/validate.js';
 import { createTripSchema, updateTripSchema } from '@/modules/trip/trip.schema.js';
@@ -28,11 +28,42 @@ import {
 import { isPrismaNotFoundError } from '@/utils/errors.js';
 import { readField } from '@/utils/object.js';
 
+const extractUserId = (metadata: grpc.Metadata): string | null => {
+  const value = metadata.get('x-user-id');
+  if (!value || value.length === 0) {
+    return null;
+  }
+  const first = value[0];
+  if (typeof first === 'string') {
+    const trimmed = first.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  return null;
+};
+
+const guardAuthenticated = <T>(
+  call: ServerUnaryCall<unknown, T>,
+  callback: sendUnaryData<T>
+): string | null => {
+  const userId = extractUserId(call.metadata);
+  if (!userId) {
+    callback({
+      code: grpc.status.UNAUTHENTICATED,
+      message: 'Authentication required',
+    } as grpc.ServiceError);
+    return null;
+  }
+  return userId;
+};
+
 export const createTripHandler = async (
   call: ServerUnaryCall<CreateTripRequest, Trip>,
   callback: sendUnaryData<Trip>
 ) => {
   try {
+    const userId = guardAuthenticated(call, callback);
+    if (!userId) return;
+
     const tripData = call.request.trip;
 
     if (!tripData) {
@@ -47,7 +78,7 @@ export const createTripHandler = async (
     const validated = validateInput(createTripSchema, input, callback);
     if (!validated) return;
 
-    const newTrip = await createNewTrip(validated);
+    const newTrip = await createNewTrip(validated, userId);
     callback(null, mapTripModelToMessage(newTrip));
   } catch (error) {
     logger.error('Error in CreateTrip:', error);
@@ -63,6 +94,8 @@ export const getTripHandler = async (
   callback: sendUnaryData<Trip>
 ) => {
   try {
+    if (!guardAuthenticated(call, callback)) return;
+
     const tripId =
       readField<string>(call.request, 'tripId', 'trip_id') ??
       (call.request as unknown as { tripId?: string }).tripId;
@@ -98,6 +131,8 @@ export const updateTripHandler = async (
   callback: sendUnaryData<Trip>
 ) => {
   try {
+    if (!guardAuthenticated(call, callback)) return;
+
     const tripData = call.request.trip;
     if (!tripData) {
       callback({
@@ -135,6 +170,8 @@ export const deleteTripHandler = async (
   callback: sendUnaryData<Empty>
 ) => {
   try {
+    if (!guardAuthenticated(call, callback)) return;
+
     const tripId =
       readField<string>(call.request, 'tripId', 'trip_id') ??
       (call.request as unknown as { tripId?: string }).tripId;
@@ -170,14 +207,15 @@ export const listTripsHandler = async (
   callback: sendUnaryData<ListTripsResponse>
 ) => {
   try {
-    const userId = readField<string>(call.request, 'userId', 'user_id');
+    const userId = guardAuthenticated(call, callback);
+    if (!userId) return;
     const pageSize =
       readField<number>(call.request, 'pageSize', 'page_size') ?? call.request.pageSize;
     const pageToken =
       readField<string>(call.request, 'pageToken', 'page_token') ?? call.request.pageToken;
 
     const result = await listTrips({
-      userId: userId || undefined,
+      userId,
       pageSize: pageSize || 20,
       pageToken: pageToken || undefined,
     });

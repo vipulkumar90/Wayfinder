@@ -1,6 +1,6 @@
 import { sendUnaryData, ServerUnaryCall } from '@grpc/grpc-js';
 import grpc from '@grpc/grpc-js';
-import type { GetBudgetRequest, GetBudgetResponse, BudgetSummary } from '@/generated/trip.js';
+import type { GetBudgetRequest, GetBudgetResponse, BudgetSummary } from '@/grpc/__generated__/trip.js';
 import logger from '@/lib/logger.js';
 import { buildBudgetSummary } from '@/modules/budget/budget.service.js';
 import { readField } from '@/utils/object.js';

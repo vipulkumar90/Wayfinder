@@ -22,8 +22,8 @@ import {
   type ListEventsResponse,
   type GetTimelineResponse,
   type GetBudgetResponse,
-} from '@/generated/trip.js';
-import { Empty } from '@/generated/google/protobuf/empty.js';
+} from '@/grpc/__generated__/trip.js';
+import { Empty } from '@/grpc/__generated__/google/protobuf/empty.js';
 
 const runIntegration = process.env.RUN_INTEGRATION === '1';
 const integrationDescribe = runIntegration ? describe : describe.skip;
@@ -31,18 +31,42 @@ const integrationDescribe = runIntegration ? describe : describe.skip;
 const SERVICE_ADDR = process.env.TRIP_SERVICE_ADDR ?? 'localhost:50051';
 
 const unaryCall = <Req, Res>(
-  method: (request: Req, callback: grpc.requestCallback<Res>) => grpc.ClientUnaryCall,
-  request: Req
+  method:
+    | ((request: Req, callback: grpc.requestCallback<Res>) => grpc.ClientUnaryCall)
+    | ((request: Req, metadata: grpc.Metadata, callback: grpc.requestCallback<Res>) => grpc.ClientUnaryCall),
+  request: Req,
+  metadata?: grpc.Metadata
 ): Promise<Res> =>
   new Promise((resolve, reject) => {
-    method(request, (err, response) => {
+    const callback: grpc.requestCallback<Res> = (err, response) => {
       if (err) {
         reject(err);
         return;
       }
       resolve(response as Res);
-    });
+    };
+
+    if (metadata) {
+      (method as (
+        request: Req,
+        metadata: grpc.Metadata,
+        callback: grpc.requestCallback<Res>
+      ) => grpc.ClientUnaryCall)(request, metadata, callback);
+      return;
+    }
+
+    (method as (
+      request: Req,
+      callback: grpc.requestCallback<Res>
+    ) => grpc.ClientUnaryCall)(request, callback);
   });
+
+const makeAuthMetadata = (userId: string, token = `token-${userId}`) => {
+  const metadata = new grpc.Metadata();
+  metadata.set('x-user-id', userId);
+  metadata.set('authorization', `Bearer ${token}`);
+  return metadata;
+};
 
 integrationDescribe('gRPC integration', () => {
   let tripClient: TripServiceClient;
@@ -63,10 +87,15 @@ integrationDescribe('gRPC integration', () => {
   });
 
   afterAll(async () => {
+    const cleanupMetadata = makeAuthMetadata('cleanup-user');
     for (const eventId of createdEventIds) {
       const req: DeleteEventRequest = { eventId };
       try {
-        await unaryCall<DeleteEventRequest, Empty>(eventClient.deleteEvent.bind(eventClient), req);
+        await unaryCall<DeleteEventRequest, Empty>(
+          eventClient.deleteEvent.bind(eventClient),
+          req,
+          cleanupMetadata
+        );
       } catch {
         /* ignore cleanup errors */
       }
@@ -75,7 +104,11 @@ integrationDescribe('gRPC integration', () => {
     for (const tripId of createdTripIds) {
       const req: DeleteTripRequest = { tripId };
       try {
-        await unaryCall<DeleteTripRequest, Empty>(tripClient.deleteTrip.bind(tripClient), req);
+        await unaryCall<DeleteTripRequest, Empty>(
+          tripClient.deleteTrip.bind(tripClient),
+          req,
+          cleanupMetadata
+        );
       } catch {
         /* ignore cleanup errors */
       }
@@ -90,12 +123,13 @@ integrationDescribe('gRPC integration', () => {
   it('creates, lists, and deletes a trip', async () => {
     const startDate = futureDate(7);
     const endDate = futureDate(9);
+    const userId = `integration-user-${Math.random().toString(16).slice(2)}`;
+    const metadata = makeAuthMetadata(userId);
 
     const createReq: CreateTripRequest = {
       trip: {
         id: '',
         title: 'Integration Trip',
-        userId: `integration-user-${Math.random().toString(16).slice(2)}`,
         destination: 'Integration City',
         startDate,
         endDate,
@@ -108,19 +142,20 @@ integrationDescribe('gRPC integration', () => {
 
     const created = await unaryCall<CreateTripRequest, TripResponse>(
       tripClient.createTrip.bind(tripClient),
-      createReq
+      createReq,
+      metadata
     );
     const createdIdFromResponse = created.id;
 
     const listReq: ListTripsRequest = {
-      userId: created.userId,
       pageSize: 10,
       pageToken: '',
     };
 
     const listResponse = await unaryCall<ListTripsRequest, ListTripsResponse>(
       tripClient.listTrips.bind(tripClient),
-      listReq
+      listReq,
+      metadata
     );
     const match = listResponse.trips.find((trip) => trip.title === createReq.trip?.title);
     expect(match).toBeDefined();
@@ -132,7 +167,11 @@ integrationDescribe('gRPC integration', () => {
     }
 
     const deleteReq: DeleteTripRequest = { tripId: tripId ?? '' };
-    await unaryCall<DeleteTripRequest, Empty>(tripClient.deleteTrip.bind(tripClient), deleteReq);
+    await unaryCall<DeleteTripRequest, Empty>(
+      tripClient.deleteTrip.bind(tripClient),
+      deleteReq,
+      metadata
+    );
 
     createdTripIds.pop();
   });
@@ -140,12 +179,13 @@ integrationDescribe('gRPC integration', () => {
   it('creates an event and fetches timeline/budget data', async () => {
     const startDate = futureDate(5);
     const endDate = futureDate(7);
+    const userId = `integration-user-${Math.random().toString(16).slice(2)}`;
+    const metadata = makeAuthMetadata(userId);
 
     const tripReq: CreateTripRequest = {
       trip: {
         id: '',
         title: 'Event Trip',
-        userId: `integration-user-${Math.random().toString(16).slice(2)}`,
         destination: 'Event City',
         startDate,
         endDate,
@@ -158,15 +198,16 @@ integrationDescribe('gRPC integration', () => {
 
     const trip = await unaryCall<CreateTripRequest, TripResponse>(
       tripClient.createTrip.bind(tripClient),
-      tripReq
+      tripReq,
+      metadata
     );
     const tripList = await unaryCall<ListTripsRequest, ListTripsResponse>(
       tripClient.listTrips.bind(tripClient),
       {
-        userId: trip.userId,
         pageSize: 5,
         pageToken: '',
-      }
+      },
+      metadata
     );
 
     const persistedTrip = tripList.trips.find((t) => t.destination === tripReq.trip?.destination);
@@ -197,7 +238,8 @@ integrationDescribe('gRPC integration', () => {
 
     const createdEvent = await unaryCall<CreateEventRequest, EventResponse>(
       eventClient.createEvent.bind(eventClient),
-      eventReq
+      eventReq,
+      metadata
     );
     createdEventIds.push(createdEvent.id);
     expect(createdEvent.id).toBeTruthy();
@@ -205,21 +247,24 @@ integrationDescribe('gRPC integration', () => {
     const listEventsReq: ListEventsRequest = { tripId };
     const events = await unaryCall<ListEventsRequest, ListEventsResponse>(
       eventClient.listEvents.bind(eventClient),
-      listEventsReq
+      listEventsReq,
+      metadata
     );
     expect(events.events.some((evt) => evt.id === createdEvent.id)).toBe(true);
 
     const timelineReq: GetTimelineRequest = { tripId };
     const timeline = await unaryCall<GetTimelineRequest, GetTimelineResponse>(
       viewClient.getTimeline.bind(viewClient),
-      timelineReq
+      timelineReq,
+      metadata
     );
     expect(timeline.days.length).toBeGreaterThan(0);
 
     const budgetReq: GetBudgetRequest = { tripId };
     const budget = await unaryCall<GetBudgetRequest, GetBudgetResponse>(
       budgetClient.getBudget.bind(budgetClient),
-      budgetReq
+      budgetReq,
+      metadata
     );
     expect(budget.summary).toBeDefined();
   });

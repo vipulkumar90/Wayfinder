@@ -8,8 +8,8 @@ import type {
   DeleteEventRequest,
   ListEventsRequest,
   ListEventsResponse,
-} from '@/generated/trip.js';
-import { Empty } from '@/generated/google/protobuf/empty.js';
+} from '@/grpc/__generated__/trip.js';
+import { Empty } from '@/grpc/__generated__/google/protobuf/empty.js';
 import logger from '@/lib/logger.js';
 import { validateInput } from '@/utils/validate.js';
 import { createEventSchema, updateEventSchema } from '@/modules/event/event.schema.js';

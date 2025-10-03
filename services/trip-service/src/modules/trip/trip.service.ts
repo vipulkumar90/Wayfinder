@@ -8,13 +8,13 @@ import {
   updateTripSchema,
 } from './trip.schema.js';
 
-export const createNewTrip = async (data: CreateTripInput) => {
+export const createNewTrip = async (data: CreateTripInput, userId: string) => {
   const validatedData = createTripSchema.parse(data);
 
   const newTrip = await prisma.trip.create({
     data: {
       title: validatedData.title,
-      userId: validatedData.userId,
+      userId,
       destination: validatedData.destination,
       startDate: validatedData.startDate,
       endDate: validatedData.endDate,
@@ -50,18 +50,15 @@ export const deleteTripById = async (id: string) => {
 };
 
 type ListTripsParams = {
-  userId?: string;
+  userId: string;
   pageSize: number;
   pageToken?: string;
 };
 
 export const listTrips = async ({ userId, pageSize, pageToken }: ListTripsParams) => {
   const take = Math.min(Math.max(pageSize || 20, 1), 100);
-
-  const where = userId ? { userId } : undefined;
-
   const trips = await prisma.trip.findMany({
-    where,
+    where: { userId },
     orderBy: { createdAt: 'asc' },
     take: take + 1,
     ...(pageToken

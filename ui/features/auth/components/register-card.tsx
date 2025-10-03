@@ -1,0 +1,89 @@
+import Image from "next/image";
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+
+export function RegisterCard() {
+  return (
+    <Card className="w-full max-w-md rounded-[32px] border-0 bg-white shadow-2xl  px-4 py-10">
+      <CardHeader className="space-y-3 text-center">
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-4xl font-semibold text-gray-900">
+            Wayfinder
+          </span>
+          <CardTitle className="mt-3 text-xl font-normal text-gray-800">
+            Create your account
+          </CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <div className="space-y-2">
+          <Label
+            htmlFor="register-email"
+            className="text-sm font-medium text-gray-700"
+          >
+            Email address
+          </Label>
+          <Input
+            id="register-email"
+            type="email"
+            placeholder="name@email.com"
+            className="h-12 rounded-xl border-gray-200 text-base focus:border-0 focus-visible:ring-1 focus-visible:ring-travel-primary"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label
+            htmlFor="register-password"
+            className="text-sm font-medium text-gray-700"
+          >
+            Password
+          </Label>
+          <Input
+            id="register-password"
+            type="password"
+            placeholder="Create a secure password"
+            className="h-12 rounded-xl border-gray-200 text-base focus:border-0 focus-visible:ring-1 focus-visible:ring-travel-primary"
+          />
+        </div>
+        <Button className="h-12 w-full rounded-xl bg-travel-primary text-base font-semibold text-white transition-colors hover:bg-travel-primary/80 cursor-pointer">
+          Create account
+        </Button>
+        <div className="text-center text-sm text-gray-600">
+          Already have an account?{" "}
+          <Link
+            href="/login"
+            className="font-medium text-travel-primary transition-colors"
+          >
+            Log in
+          </Link>
+        </div>
+        <div className="relative py-3 text-center text-sm text-gray-400">
+          <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2">
+            <Separator className="mx-auto w-full max-w-[85%] bg-gray-200" />
+          </div>
+          <span className="relative inline-flex bg-white px-3 text-gray-500">
+            OR
+          </span>
+        </div>
+        <Button
+          variant="outline"
+          className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border-gray-200 bg-white text-base font-normal text-gray-700 transition-colors cursor-pointer"
+        >
+          <Image src="/google-icon.png" alt="Google" width={20} height={20} />
+          Sign up with Google
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}

@@ -16,9 +16,11 @@ import "google/protobuf/empty.proto";
 // -----------------------------
 
 message Trip {
+  reserved 3;
+  reserved "user_id";
+
   string id = 1;
   optional string title = 2; // optional
-  string user_id = 3;
   string destination = 4; // e.g. "Japan, France"
   google.protobuf.Timestamp start_date = 5; // date/time 
   google.protobuf.Timestamp end_date = 6;   // date/time 
@@ -87,7 +89,9 @@ message DeleteTripRequest {
 }
 
 message ListTripsRequest {
-  string user_id = 1; // optional, filter by user
+  reserved 1;
+  reserved "user_id";
+
   int32 page_size = 2;
   string page_token = 3;
 }

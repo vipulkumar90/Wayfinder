@@ -12,13 +12,11 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["services/user-service/src/Wayfinder.UserService/Wayfinder.AuthService.Api/Wayfinder.AuthService.Api.csproj", "Wayfinder.AuthService.Api/"]
-COPY ["services/user-service/src/Wayfinder.UserService/Wayfinder.DataLayer/Wayfinder.DataLayer.csproj", "Wayfinder.DataLayer/"]
-COPY ["shared/protos/common.proto", "Wayfinder.AuthService.Api/"]
-COPY ["shared/protos/auth_user.proto", "Wayfinder.AuthService.Api/"]
-RUN dotnet restore "./Wayfinder.AuthService.Api/Wayfinder.AuthService.Api.csproj"
+COPY ["services/user-service/src/Wayfinder.UserService/Wayfinder.AuthService.Api/Wayfinder.AuthService.Api.csproj", "services/user-service/src/Wayfinder.UserService/Wayfinder.AuthService.Api/"]
+COPY ["services/user-service/src/Wayfinder.UserService/Wayfinder.DataLayer/Wayfinder.DataLayer.csproj", "services/user-service/src/Wayfinder.UserService/Wayfinder.DataLayer/"]
+RUN dotnet restore "services/user-service/src/Wayfinder.UserService/Wayfinder.AuthService.Api/Wayfinder.AuthService.Api.csproj"
 COPY . .
-WORKDIR "/src/Wayfinder.AuthService.Api"
+WORKDIR "/src/services/user-service/src/Wayfinder.UserService/Wayfinder.AuthService.Api"
 RUN dotnet build "./Wayfinder.AuthService.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage

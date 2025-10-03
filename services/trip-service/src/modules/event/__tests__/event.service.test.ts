@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import { Category } from '@/generated/trip.js';
+import { Category } from '@/grpc/__generated__/trip.js';
 import type { Event, Prisma } from '@prisma/client/default.js';
 
 const eventCreateMock: jest.MockedFunction<(args: Prisma.EventCreateArgs) => Promise<Event>> =

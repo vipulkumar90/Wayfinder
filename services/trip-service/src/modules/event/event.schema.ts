@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Category } from '@/generated/trip.js';
+import { Category } from '@/grpc/__generated__/trip.js';
 
 const categorySchema = z.enum(Category).refine((value) => value !== Category.UNRECOGNIZED, {
   message: 'category is invalid',

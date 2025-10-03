@@ -59,7 +59,6 @@ describe('trip.service', () => {
   it('creates a new trip with trimmed inputs', async () => {
     const input = {
       title: '  Tokyo Adventure  ',
-      userId: 'user_123',
       destination: 'Tokyo, Japan',
       startDate: new Date('2025-04-10T00:00:00Z'),
       endDate: new Date('2025-04-12T23:59:59Z'),
@@ -68,12 +67,12 @@ describe('trip.service', () => {
     };
     tripCreateMock.mockResolvedValue(baseTrip);
 
-    const result = await createNewTrip(input);
+    const result = await createNewTrip(input, 'user_123');
 
     expect(tripCreateMock).toHaveBeenCalledWith({
       data: {
         title: 'Tokyo Adventure',
-        userId: input.userId,
+        userId: 'user_123',
         destination: input.destination,
         startDate: input.startDate,
         endDate: input.endDate,
@@ -87,7 +86,6 @@ describe('trip.service', () => {
   it('rejects trips where startDate is after endDate', async () => {
     const input = {
       title: 'Bad Trip',
-      userId: 'user_123',
       destination: 'Nowhere',
       startDate: new Date('2025-04-12T00:00:00Z'),
       endDate: new Date('2025-04-10T00:00:00Z'),
@@ -95,7 +93,9 @@ describe('trip.service', () => {
       currency: 'USD',
     };
 
-    await expect(createNewTrip(input)).rejects.toThrow(/startDate must be before endDate/i);
+    await expect(createNewTrip(input, 'user_123')).rejects.toThrow(
+      /startDate must be before endDate/i
+    );
     expect(tripCreateMock).not.toHaveBeenCalled();
   });
 
