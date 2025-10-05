@@ -53,8 +53,13 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Wayfinder User Service API V1");
         c.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
     });
-    app.MapGrpcReflectionService();
 }
+using (var scope = app.Services.CreateAsyncScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<UserContext>();
+    await context.Database.MigrateAsync();
+}
+app.MapGrpcReflectionService();
 // Configure the HTTP request pipeline.
 app.MapGrpcService<UserApi>();
 app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
