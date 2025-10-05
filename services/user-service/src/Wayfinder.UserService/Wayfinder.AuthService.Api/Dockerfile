@@ -21,11 +21,11 @@ WORKDIR "/src/services/user-service/src/Wayfinder.UserService"
 # Add EF migration
 RUN dotnet tool install --global dotnet-ef
 RUN /root/.dotnet/tools/dotnet-ef migrations add InitialAuth12 --context AuthUserContext --startup-project ./Wayfinder.AuthService.Api/Wayfinder.AuthService.Api.csproj --project ./Wayfinder.DataLayer/Wayfinder.DataLayer.csproj -v
-RUN /root/.dotnet/tools/dotnet-ef database update --context AuthUserContext --startup-project Wayfinder.AuthService.Api --project ./Wayfinder.DataLayer/Wayfinder.DataLayer.csproj
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
+WORKDIR "/src/services/user-service/src/Wayfinder.UserService/Wayfinder.AuthService.Api"
 RUN dotnet publish "./Wayfinder.AuthService.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
