@@ -5,7 +5,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
-EXPOSE 8081
 
 
 # This stage is used to build the service project
@@ -18,10 +17,15 @@ RUN dotnet restore "services/user-service/src/Wayfinder.UserService/Wayfinder.Au
 COPY . .
 WORKDIR "/src/services/user-service/src/Wayfinder.UserService/Wayfinder.AuthService.Api"
 RUN dotnet build "./Wayfinder.AuthService.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/services/user-service/src/Wayfinder.UserService"
+# Add EF migration
+RUN dotnet tool install --global dotnet-ef
+RUN /root/.dotnet/tools/dotnet-ef migrations add InitialAuth12 --context AuthUserContext --startup-project ./Wayfinder.AuthService.Api/Wayfinder.AuthService.Api.csproj --project ./Wayfinder.DataLayer/Wayfinder.DataLayer.csproj -v
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
+WORKDIR "/src/services/user-service/src/Wayfinder.UserService/Wayfinder.AuthService.Api"
 RUN dotnet publish "./Wayfinder.AuthService.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
