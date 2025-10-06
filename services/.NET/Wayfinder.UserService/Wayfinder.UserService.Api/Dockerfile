@@ -12,21 +12,18 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["services/user-service/src/Wayfinder.UserService/Wayfinder.UserService.Api/Wayfinder.UserService.Api.csproj", "services/user-service/src/Wayfinder.UserService/Wayfinder.UserService.Api/"]
-COPY ["services/user-service/src/Wayfinder.UserService/Wayfinder.DataLayer/Wayfinder.DataLayer.csproj", "services/user-service/src/Wayfinder.UserService/Wayfinder.DataLayer/"]
-RUN dotnet restore "services/user-service/src/Wayfinder.UserService/Wayfinder.UserService.Api/Wayfinder.UserService.Api.csproj"
+COPY ["services/.NET/Wayfinder.UserService/Wayfinder.UserService.Api/Wayfinder.UserService.Api.csproj", "services/.NET/Wayfinder.UserService/Wayfinder.UserService.Api/"]
+COPY ["services/.NET/Wayfinder.UserService/Wayfinder.DataLayer/Wayfinder.DataLayer.csproj", "services/.NET/Wayfinder.UserService/Wayfinder.DataLayer/"]
+RUN dotnet restore "services/.NET/Wayfinder.UserService/Wayfinder.UserService.Api/Wayfinder.UserService.Api.csproj"
 COPY . .
-WORKDIR "/src/services/user-service/src/Wayfinder.UserService/Wayfinder.UserService.Api"
+WORKDIR "/src/services/.NET/Wayfinder.UserService/Wayfinder.UserService.Api"
 RUN dotnet build "./Wayfinder.UserService.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
-WORKDIR "/src/services/user-service/src/Wayfinder.UserService"
-# Add EF migration
-RUN dotnet tool install --global dotnet-ef
-RUN /root/.dotnet/tools/dotnet-ef migrations add InitialUser12 --context UserContext --startup-project ./Wayfinder.UserService.Api/Wayfinder.UserService.Api.csproj --project ./Wayfinder.DataLayer/Wayfinder.DataLayer.csproj
+WORKDIR "/src/services/.NET/Wayfinder.UserService"
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-WORKDIR "/src/services/user-service/src/Wayfinder.UserService/Wayfinder.UserService.Api"
+WORKDIR "/src/services/.NET/Wayfinder.UserService/Wayfinder.UserService.Api"
 RUN dotnet publish "./Wayfinder.UserService.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)

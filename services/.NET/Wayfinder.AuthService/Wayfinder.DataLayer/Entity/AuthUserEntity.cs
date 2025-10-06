@@ -16,10 +16,6 @@ namespace Wayfinder.DataLayer.Entity
         /// </summary>
         public Guid UserId { get; set; }
         /// <summary>
-        /// Gets or sets the foreign key referencing the associated user entity.
-        /// </summary>
-        public UserEntity User { get; set; } = default!;
-        /// <summary>
         /// Gets or sets the hashed representation of the user's password.
         /// </summary>
         /// <remarks>The password hash is typically generated using a secure cryptographic algorithm and

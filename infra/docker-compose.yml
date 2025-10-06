@@ -18,10 +18,9 @@ services:
   user-service:
     build:
       context: ..
-      dockerfile: ./services/user-service/src/Wayfinder.UserService/Wayfinder.UserService.Api/Dockerfile
-    container_name: user_service_api
+      dockerfile: ./services/.NET/Wayfinder.UserService/Wayfinder.UserService.Api/Dockerfile
     environment:
-      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TripPlannerDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TripDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;
       - ASPNETCORE_URLS=http://+:8080
     depends_on:
        sqlserver:
@@ -35,9 +34,9 @@ services:
   auth-service:
     build:
       context: ..
-      dockerfile: ./services/user-service/src/Wayfinder.UserService/Wayfinder.AuthService.Api/Dockerfile
+      dockerfile: ./services/.NET/Wayfinder.AuthService/Wayfinder.AuthService.Api/Dockerfile
     environment:
-      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TripPlannerDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TripDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;
       - ASPNETCORE_URLS=http://+:8080
     depends_on:
        sqlserver:
