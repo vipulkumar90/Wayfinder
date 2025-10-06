@@ -32,8 +32,8 @@
 
 	<ItemGroup>
 	<ProjectReference Include="..\Wayfinder.DataLayer\Wayfinder.DataLayer.csproj" />
-	<Protobuf Include="$(MSBuildThisFileDirectory)..\..\..\..\..\shared\protos\auth_user.proto" GrpcServices="Server" Link="Protos\auth_user.proto" />
-	<Protobuf Include="$(MSBuildThisFileDirectory)..\..\..\..\..\shared\protos\common.proto" GrpcServices="Server" Link="Protos\common.proto" />
+	<Protobuf Include="$(MSBuildThisFileDirectory)..\..\..\..\shared\protos\auth_user.proto" GrpcServices="Server" Link="Protos\auth_user.proto" />
+	<Protobuf Include="$(MSBuildThisFileDirectory)..\..\..\..\shared\protos\common.proto" GrpcServices="Server" Link="Protos\common.proto" />
   </ItemGroup>
 
 </Project>
