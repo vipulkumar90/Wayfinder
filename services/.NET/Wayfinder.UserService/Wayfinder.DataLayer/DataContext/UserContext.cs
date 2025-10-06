@@ -105,9 +105,7 @@ namespace Wayfinder.DataLayer.DataContext
                     PhoneNumber = "1000000001",
                     CreatedAt = seedDate,
                     UpdatedAt = seedDate,
-                    IsActive = true,
-                    RefreshToken = null!,
-                    AuthUser = null!
+                    IsActive = true
                 },
                 new UserEntity
                 {
@@ -119,9 +117,7 @@ namespace Wayfinder.DataLayer.DataContext
                     PhoneNumber = "1000000002",
                     CreatedAt = seedDate,
                     UpdatedAt = seedDate,
-                    IsActive = true,
-                    RefreshToken = null!,
-                    AuthUser = null!
+                    IsActive = true
                 },
                 new UserEntity
                 {
@@ -133,9 +129,7 @@ namespace Wayfinder.DataLayer.DataContext
                     PhoneNumber = "1000000003",
                     CreatedAt = seedDate,
                     UpdatedAt = seedDate,
-                    IsActive = false,
-                    RefreshToken = null!,
-                    AuthUser = null!
+                    IsActive = false
                 },
                 new UserEntity
                 {
@@ -147,9 +141,7 @@ namespace Wayfinder.DataLayer.DataContext
                     PhoneNumber = "1000000004",
                     CreatedAt = seedDate,
                     UpdatedAt = seedDate,
-                    IsActive = true,
-                    RefreshToken = null!,
-                    AuthUser = null!
+                    IsActive = true
                 },
                 new UserEntity
                 {
@@ -161,9 +153,7 @@ namespace Wayfinder.DataLayer.DataContext
                     PhoneNumber = "1000000005",
                     CreatedAt = seedDate,
                     UpdatedAt = seedDate,
-                    IsActive = false,
-                    RefreshToken = null!,
-                    AuthUser = null!
+                    IsActive = false
                 }
             );
         }

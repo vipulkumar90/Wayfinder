@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Wayfinder.DataLayer.Entity;
-using UserPb.V1;
 
 namespace Wayfinder.UserService.Api.MapperProfile
 {
@@ -8,9 +7,9 @@ namespace Wayfinder.UserService.Api.MapperProfile
     {
         public UserProfile()
         {
-            CreateMap<UserEntity, User>();
-            CreateMap<CreateUser, UserEntity>();
-            CreateMap<UpdateUser, UserEntity>();
+            CreateMap<UserEntity, User.V1.User>();
+            CreateMap<User.V1.CreateUser, UserEntity>();
+            CreateMap<User.V1.UpdateUser, UserEntity>();
         }
     }
 }

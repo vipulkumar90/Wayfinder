@@ -5,8 +5,6 @@ using Wayfinder.DataLayer.Repository;
 using Microsoft.OpenApi.Models;
 using Wayfinder.UserService.Api.MapperProfile;
 using Wayfinder.DataLayer.Repository.Interface;
-using Wayfinder.UserService.Api.Service;
-using Wayfinder.UserService.Api.Service.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,8 +37,6 @@ builder.Services.AddDbContext<UserContext>(options =>
 });
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-
-builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddAutoMapper(cfg =>
 {
