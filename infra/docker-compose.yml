@@ -21,41 +21,35 @@ services:
       dockerfile: ./services/user-service/src/Wayfinder.UserService/Wayfinder.UserService.Api/Dockerfile
     container_name: user_service_api
     environment:
-      - ConnectionStrings__DefaultConnection=Server=localhost,1433;Database=TripPlannerDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;
-      - ASPNETCORE_URLS=http://+:8080;https://+:8081
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TripPlannerDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;
+      - ASPNETCORE_URLS=http://+:8080
     depends_on:
-       sqlserver:
-         condition: service_healthy
+      - sqlserver
     restart: unless-stopped
     ports:
       - "5001:8080" # localhost:5001 → container:8080 (HTTP)
     networks:
       - wayfinder-network
-    command: >
-      sh -c "dotnet ef database update --context UserContext --no-build &&
-             dotnet Wayfinder.UserService.Api.dll"
 
   auth-service:
     build:
       context: ..
       dockerfile: ./services/user-service/src/Wayfinder.UserService/Wayfinder.AuthService.Api/Dockerfile
+    container_name: auth_service_api
     environment:
-      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=TripPlannerDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;"
-      ASPNETCORE_URLS: "http://+:8080"
-    depends_on:
-      sqlserver:
-        condition: service_healthy
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TripPlannerDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;
+      - ASPNETCORE_URLS=http://+:8080
+      - sqlserver
     restart: unless-stopped
     ports:
       - "5002:8080" # localhost:5001 → container:8080 (HTTP)
     networks:
       - wayfinder-network
-    command: >
-      sh -c "dotnet ef database update --context AuthUserContext --no-build &&
-             dotnet Wayfinder.AuthService.Api.dll"
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: unless-stopped
+    container_name: sqlserverdb
     environment:
       - "ACCEPT_EULA=Y"
       - "MSSQL_SA_PASSWORD=Password@12345"
@@ -67,16 +61,11 @@ services:
       - wayfinder-network
     volumes:
       - sql_data:/var/opt/mssql
-    healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S 'localhost' -U 'sa' -P 'Password@12345' -C -Q 'SELECT 1'"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
 
   postgredb:
     image: postgres
-    restart: unless-stopped
+    restart: always
+    container_name: postgredb
     environment:
       POSTGRES_USER: wayfinder
       POSTGRES_PASSWORD: 123456
@@ -95,6 +84,7 @@ services:
 
 volumes:
   dbdata:
+    driver: local
   sql_data:
 
 networks:
