@@ -38,6 +38,9 @@ services:
     environment:
       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TripDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;
       - ASPNETCORE_URLS=http://+:8080
+      - JWT__Secret=your-32-characters-long-super-strong-jwt-secret-key
+      - JWT__ValidIssuer=Wayfinder.AuthService
+      - JWT__ValidAudience=Wayfinder.AuthService
     depends_on:
        sqlserver:
          condition: service_healthy
