@@ -18,13 +18,13 @@ services:
   user-service:
     build:
       context: ..
-      dockerfile: ./services/user-service/src/Wayfinder.UserService/Wayfinder.UserService.Api/Dockerfile
-    container_name: user_service_api
+      dockerfile: ./services/.NET/Wayfinder.UserService/Wayfinder.UserService.Api/Dockerfile
     environment:
-      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TripPlannerDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TripDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;
       - ASPNETCORE_URLS=http://+:8080
     depends_on:
-      - sqlserver
+       sqlserver:
+         condition: service_healthy
     restart: unless-stopped
     ports:
       - "5001:8080" # localhost:5001 → container:8080 (HTTP)
@@ -34,12 +34,16 @@ services:
   auth-service:
     build:
       context: ..
-      dockerfile: ./services/user-service/src/Wayfinder.UserService/Wayfinder.AuthService.Api/Dockerfile
-    container_name: auth_service_api
+      dockerfile: ./services/.NET/Wayfinder.AuthService/Wayfinder.AuthService.Api/Dockerfile
     environment:
-      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TripPlannerDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TripDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;
       - ASPNETCORE_URLS=http://+:8080
-      - sqlserver
+      - JWT__Secret=your-32-characters-long-super-strong-jwt-secret-key
+      - JWT__ValidIssuer=Wayfinder.AuthService
+      - JWT__ValidAudience=Wayfinder.AuthService
+    depends_on:
+       sqlserver:
+         condition: service_healthy
     restart: unless-stopped
     ports:
       - "5002:8080" # localhost:5001 → container:8080 (HTTP)
@@ -49,7 +53,6 @@ services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     restart: unless-stopped
-    container_name: sqlserverdb
     environment:
       - "ACCEPT_EULA=Y"
       - "MSSQL_SA_PASSWORD=Password@12345"
@@ -61,11 +64,17 @@ services:
       - wayfinder-network
     volumes:
       - sql_data:/var/opt/mssql
+      - ../scripts:/scripts
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S 'localhost' -U 'sa' -P 'Password@12345' -C -Q 'SELECT 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
 
   postgredb:
     image: postgres
-    restart: always
-    container_name: postgredb
+    restart: unless-stopped
     environment:
       POSTGRES_USER: wayfinder
       POSTGRES_PASSWORD: 123456
@@ -84,7 +93,6 @@ services:
 
 volumes:
   dbdata:
-    driver: local
   sql_data:
 
 networks:

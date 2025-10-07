@@ -1,8 +1,9 @@
 syntax = "proto3";
 
-package user.v1;
+package user_pb.v1;
 
 import "google/protobuf/timestamp.proto";
+import "common.proto";
 // import "google/api/annotations.proto";
 
 /// User Service - gRPC API
@@ -40,6 +41,10 @@ message User {
   bool is_active = 9;
 }
 
+message UserList {
+  repeated User users = 1;
+}
+
 // -----------------------------
 // Request
 // -----------------------------
@@ -75,23 +80,38 @@ message DeleteUserRequest {
 // -----------------------------
 
 message CreateUserResponse {
-  User user = 1;
+  oneof result {
+    User user = 1;
+    common.Error error = 2;
+  }
 }
 
 message GetUserResponse {
-  User user = 1;
+  oneof result {
+    User user = 1;
+    common.Error error = 2;
+  }
 }
 
 message GetAllUsersResponse {
-  repeated User users = 1;
+  oneof result {
+    UserList users = 1;
+    common.Error error = 2;
+  }
 }
 
 message UpdateUserResponse {
-  User user = 1;
+  oneof result {
+    User user = 1;
+    common.Error error = 2;
+  }
 }
 
 message DeleteUserResponse {
-  bool success = 1;
+  oneof result {
+    bool success = 1;
+    common.Error error = 2;
+  }
 }
 
 // -----------------------------
