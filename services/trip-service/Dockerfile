@@ -19,7 +19,7 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 RUN corepack enable
 COPY services/trip-service/package.json services/trip-service/pnpm-lock.yaml ./
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 # Copy the compiled code from the builder stage
 COPY --from=builder /app/dist ./dist
@@ -30,4 +30,4 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 EXPOSE 50051
 EXPOSE 3000
 
-CMD ["node", "dist/app.js"]
+CMD ["sh", "-c", "pnpm prisma generate && pnpm prisma migrate deploy && node dist/app.js"]
