@@ -1,4 +1,4 @@
-import { Category as GrpcCategory } from '@/generated/trip.js';
+import { Category as GrpcCategory } from '@/grpc/__generated__/trip.js';
 
 export const toPrismaCategory = (category: GrpcCategory | undefined) => {
   switch (category) {

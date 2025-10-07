@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="320" viewBox="0 0 1024 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wayfinder logo">
+  <title>Wayfinder logo</title>
+  <!-- Icon: minimal map pin with airplane -->
+  <g id="icon" transform="translate(40,40)">
+    <!-- Pin -->
+    <path d="M120 0C80.579 0 48 32.579 48 72c0 46.5 61 120 72 136 11-16 72-89.5 72-136 0-39.421-32.579-72-72-72z" fill="#FFE937"/>
+    <!-- Airplane (simple silhouette) -->
+    <g transform="translate(98,58) rotate(-20)">
+      <path d="M0 0 l30 8 l-8 6 l14 10 l-6 4 l-14 -8 l-8 18 l-5 -2 l3 -19 l-11 -5 z" fill="#FFFFFF"/>
+    </g>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="240" y="190" fill="#6755ED" font-size="160" font-weight="600"
+        font-family="Fraunces, ui-serif, Georgia, 'Times New Roman', serif"
+        letter-spacing="1">
+    Wayfinder
+  </text>
+</svg>

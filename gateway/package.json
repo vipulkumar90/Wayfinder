@@ -1,0 +1,47 @@
+{
+  "name": "gateway",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/app.js",
+  "scripts": {
+    "dev": "tsx watch src/app.ts",
+    "build": "tsc --project tsconfig.json",
+    "start": "node dist/app.js",
+    "codegen": "graphql-codegen --config codegen.ts",
+    "proto:gen": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=src/grpc/__generated__ --ts_proto_opt=esModuleInterop=true,outputServices=grpc-js,env=node,useOptionals=messages,importSuffix=.js --proto_path=../shared/protos ../shared/protos/*.proto",
+    "test": "echo \"No tests defined for gateway\""
+  },
+  "type": "module",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.14.0",
+  "dependencies": {
+    "@apollo/server": "^4.11.2",
+    "@as-integrations/express5": "^1.1.2",
+    "@bufbuild/protobuf": "^2.9.0",
+    "@graphql-tools/schema": "^10.0.25",
+    "@graphql-tools/utils": "^10.5.4",
+    "@grpc/grpc-js": "^1.11.3",
+    "@grpc/proto-loader": "^0.7.12",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "graphql": "^16.9.0",
+    "graphql-tag": "^2.12.6",
+    "helmet": "^7.2.0",
+    "winston": "^3.17.0",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^6.0.0",
+    "@graphql-codegen/typescript": "^5.0.0",
+    "@graphql-codegen/typescript-resolvers": "^5.0.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.5.2",
+    "ts-proto": "^2.7.7",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.2"
+  }
+}

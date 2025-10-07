@@ -1,0 +1,36 @@
+import path from "path";
+import dotenv from "dotenv";
+import { z } from "zod";
+
+dotenv.config({ path: path.join(process.cwd(), ".env") });
+
+const envSchema = z.object({
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  PORT: z.coerce.number().default(8080),
+  TRIP_SERVICE_URL: z
+    .string()
+    .min(1, "TRIP_SERVICE_URL is required")
+    .default("localhost:50051"),
+  USER_SERVICE_URL: z.string().min(1).optional(),
+  AUTH_SERVICE_URL: z.string().min(1).optional(),
+});
+
+const parsed = envSchema.safeParse(process.env);
+
+if (!parsed.success) {
+  throw new Error(
+    `Env configuration validation error: ${parsed.error.message}`
+  );
+}
+
+const env = parsed.data;
+
+export default {
+  env: env.NODE_ENV,
+  port: env.PORT,
+  grpc: {
+    tripServiceUrl: env.TRIP_SERVICE_URL,
+    userServiceUrl: env.USER_SERVICE_URL ?? null,
+    authServiceUrl: env.AUTH_SERVICE_URL ?? null,
+  },
+};

@@ -1,7 +1,4 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
 import grpc from '@grpc/grpc-js';
-import protoLoader from '@grpc/proto-loader';
 import { prisma } from '@/lib/prisma.js';
 import config from './config/env.js';
 import logger from './lib/logger.js';
@@ -21,6 +18,12 @@ import {
 } from './grpc/event.handler.js';
 import { getTimelineHandler, getMapViewHandler } from './grpc/view.handler.js';
 import { getBudgetHandler } from './grpc/budget.handler.js';
+import {
+  TripServiceService,
+  EventServiceService,
+  ViewServiceService,
+  BudgetServiceService,
+} from '@/grpc/__generated__/trip.js';
 
 try {
   await prisma.$connect();
@@ -30,53 +33,31 @@ try {
   process.exit(1); // Exit if the database connection fails
 }
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Here is a absolute path
-const protoPath =
-  config.env === 'development'
-    ? '../../../shared/protos/trip.proto'
-    : '../shared/protos/trip.proto';
-const PROTO_FILE = path.resolve(__dirname, protoPath);
-
-const options: protoLoader.Options = {
-  keepCase: true,
-  longs: String,
-  enums: String,
-  defaults: true,
-  oneofs: true,
-};
-
-const packageDef = protoLoader.loadSync(PROTO_FILE, options);
-
-const proto = (grpc.loadPackageDefinition(packageDef) as any).trip.v1;
-
 const server = new grpc.Server();
 
-server.addService(proto.TripService.service, {
-  CreateTrip: createTripHandler,
-  GetTrip: getTripHandler,
-  UpdateTrip: updateTripHandler,
-  DeleteTrip: deleteTripHandler,
-  ListTrips: listTripsHandler,
+server.addService(TripServiceService, {
+  createTrip: createTripHandler,
+  getTrip: getTripHandler,
+  updateTrip: updateTripHandler,
+  deleteTrip: deleteTripHandler,
+  listTrips: listTripsHandler,
 });
 
-server.addService(proto.EventService.service, {
-  CreateEvent: createEventHandler,
-  GetEvent: getEventHandler,
-  UpdateEvent: updateEventHandler,
-  DeleteEvent: deleteEventHandler,
-  ListEvents: listEventsHandler,
+server.addService(EventServiceService, {
+  createEvent: createEventHandler,
+  getEvent: getEventHandler,
+  updateEvent: updateEventHandler,
+  deleteEvent: deleteEventHandler,
+  listEvents: listEventsHandler,
 });
 
-server.addService(proto.ViewService.service, {
-  GetTimeline: getTimelineHandler,
-  GetMapView: getMapViewHandler,
+server.addService(ViewServiceService, {
+  getTimeline: getTimelineHandler,
+  getMapView: getMapViewHandler,
 });
 
-server.addService(proto.BudgetService.service, {
-  GetBudget: getBudgetHandler,
+server.addService(BudgetServiceService, {
+  getBudget: getBudgetHandler,
 });
 
 server.bindAsync(`0.0.0.0:${config.port}`, grpc.ServerCredentials.createInsecure(), (err, port) => {

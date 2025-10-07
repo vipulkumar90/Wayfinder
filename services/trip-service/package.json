@@ -15,7 +15,7 @@
     "start": "node dist/app.js",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
-    "proto:gen": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=src/generated --ts_proto_opt=esModuleInterop=true,outputServices=grpc-js,env=node,useOptionals=messages,importSuffix=.js --proto_path=../../shared/protos ../../shared/protos/*.proto"
+    "proto:gen": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=src/grpc/__generated__ --ts_proto_opt=esModuleInterop=true,outputServices=grpc-js,env=node,useOptionals=messages,importSuffix=.js --proto_path=../../shared/protos ../../shared/protos/*.proto"
   },
   "keywords": [],
   "author": "",

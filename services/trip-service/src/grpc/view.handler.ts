@@ -8,7 +8,7 @@ import type {
   GetMapViewResponse,
   DayMap,
   MapPoint,
-} from '@/generated/trip.js';
+} from '@/grpc/__generated__/trip.js';
 import logger from '@/lib/logger.js';
 import { buildTimeline, buildMapView } from '@/modules/view/view.service.js';
 import { mapEventModelToMessage } from './mappers.js';
