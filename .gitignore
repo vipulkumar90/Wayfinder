@@ -5,3 +5,4 @@
 /.vs
 /services/user-service/src/Wayfinder.UserService/.vs
 /services/user-service/src/Wayfinder.UserService/Wayfinder.UserService.Api/Migrations
+.env
