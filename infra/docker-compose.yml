@@ -23,8 +23,8 @@ services:
       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TripDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;
       - ASPNETCORE_URLS=http://+:8080
     depends_on:
-       sqlserver:
-         condition: service_healthy
+      sqlserver:
+        condition: service_healthy
     restart: unless-stopped
     ports:
       - "5001:8080" # localhost:5001 → container:8080 (HTTP)
@@ -32,18 +32,20 @@ services:
       - wayfinder-network
 
   auth-service:
+    env_file:
+      - ../.env
     build:
       context: ..
       dockerfile: ./services/.NET/Wayfinder.AuthService/Wayfinder.AuthService.Api/Dockerfile
     environment:
       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TripDb;User Id=sa;Password=Password@12345;TrustServerCertificate=True;
       - ASPNETCORE_URLS=http://+:8080
-      - JWT__Secret=your-32-characters-long-super-strong-jwt-secret-key
+      - JWT__Secret={JWT_SECRET}
       - JWT__ValidIssuer=Wayfinder.AuthService
       - JWT__ValidAudience=Wayfinder.AuthService
     depends_on:
-       sqlserver:
-         condition: service_healthy
+      sqlserver:
+        condition: service_healthy
     restart: unless-stopped
     ports:
       - "5002:8080" # localhost:5001 → container:8080 (HTTP)
@@ -66,11 +68,33 @@ services:
       - sql_data:/var/opt/mssql
       - ../scripts:/scripts
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S 'localhost' -U 'sa' -P 'Password@12345' -C -Q 'SELECT 1'"]
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S 'localhost' -U 'sa' -P 'Password@12345' -C -Q 'SELECT 1'",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 60s
+
+  sqlserver-seed:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - wayfinder-network
+    volumes:
+      - ../scripts:/scripts
+    environment:
+      SQLSERVER_HOST: sqlserver
+      SQLSERVER_PORT: 1433
+      SQLSERVER_USER: sa
+      SQLSERVER_PASSWORD: Password@12345
+      SQLSERVER_DB: TripDb
+    entrypoint: ["/bin/bash", "/scripts/run-sql/execute-sql.sh"]
+    restart: "no"
 
   postgredb:
     image: postgres
